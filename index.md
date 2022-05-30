@@ -14,4 +14,4 @@
 #### [小岛秀夫2009年GDC演讲观后感与笔记]()
 ***
 ### 游戏策划相关理念
-#### [2022.5.30 关于游戏反推案的论证过程]()
+#### [2022.5.30 关于游戏反推案的论证过程](https://github.com/Criss404/criss404.github.io/blob/master/_posts/2022-05-30-game_reverse.md)
