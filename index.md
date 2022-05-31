@@ -16,3 +16,5 @@
 ### 游戏策划相关理念
 #### [如何成功的反推一款游戏（系统篇）](https://github.com/Criss404/criss404.github.io/blob/master/_posts/2022-05-30-game_reverse.md)
 ---
+### 游戏剧本相关
+#### [简单的故事（第一幕））](https://github.com/Criss404/criss404.github.io/blob/master/_posts/2022-05-31-game_play.md)
