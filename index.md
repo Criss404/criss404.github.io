@@ -1,4 +1,6 @@
 # 欢迎来到克里斯的个人博客！
+### C#相关
+#### [我的C#学习记录01（初学问题相关）]()
 ### Unity相关
 #### [我的unity学习笔记01（初学问题相关）](https://github.com/Criss404/criss404.github.io/blob/master/_posts/2022-04-19-unity_learn01.md)
 #### [我的unity学习笔记02（2D游戏相关）](https://github.com/Criss404/criss404.github.io/blob/master/_posts/2022-04-20-unity_learn02.md)
