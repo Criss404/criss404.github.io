@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  《淬火》主面板框 · 9-slice 可切 · 铁木语法
+  设计约束:
+  - 只用 docs/ui_mock/mock_v2.html :root 的 token 色值,所以天然 100% 落在色板上
+  - shape-rendering="crispEdges" 关掉抗锯齿 -> 任何倍率都是硬边,不产生小数像素
+  - 四边包边等宽(32 单位),中间场域是平色 -> 9-slice 切片宽 = 32
+  - 母题:顶边内侧一条熔橙线(铁水)
+  - 光源:左上单一暖光 -> 上/左为亮面,下/右为暗面
+  角码、铆钉、边条都在 32 单位的角区或边区内,拉伸时不会变形。
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160" viewBox="0 0 240 160"
+     shape-rendering="crispEdges">
+
+  <!-- 1. 外描边:整块近黑 -->
+  <rect x="0" y="0" width="240" height="160" fill="#080503"/>
+
+  <!-- 2. 铁框本体 -->
+  <rect x="3" y="3" width="234" height="154" fill="#2b3036"/>
+  <!-- 上/左亮面(左上光源) -->
+  <rect x="3" y="3" width="234" height="2" fill="#777c84"/>
+  <rect x="3" y="3" width="2" height="154" fill="#5f666e"/>
+  <!-- 下/右暗面 -->
+  <rect x="3" y="152" width="234" height="3" fill="#14171a"/>
+  <rect x="232" y="3" width="5" height="154" fill="#1a1d21"/>
+  <!-- 铁框中调过渡带 -->
+  <rect x="6" y="6" width="228" height="148" fill="#3a4046"/>
+
+  <!-- 3. 木板场域:四段平色 + 每段上沿一道接光棱 -->
+  <rect x="15" y="15" width="210" height="130" fill="#1a1106"/>
+  <rect x="15" y="15" width="210" height="34" fill="#4d3a22"/>
+  <rect x="15" y="49" width="210" height="33" fill="#3d2c17"/>
+  <rect x="15" y="82" width="210" height="33" fill="#33240f"/>
+  <rect x="15" y="115" width="210" height="30" fill="#1a1106"/>
+  <!-- 板缝:每段下沿压深 -->
+  <rect x="15" y="47" width="210" height="2" fill="#0f0a04"/>
+  <rect x="15" y="80" width="210" height="2" fill="#0f0a04"/>
+  <rect x="15" y="113" width="210" height="2" fill="#0f0a04"/>
+  <!-- 木纹:几条 1px 长横纹,横向拉伸只会变长,不会失真 -->
+  <rect x="34" y="24" width="126" height="1" fill="#5a4128"/>
+  <rect x="72" y="33" width="118" height="1" fill="#3f2f1b"/>
+  <rect x="28" y="58" width="140" height="1" fill="#4a3520"/>
+  <rect x="96" y="68" width="96" height="1" fill="#2e2110"/>
+  <rect x="40" y="92" width="128" height="1" fill="#3d2b13"/>
+  <rect x="88" y="126" width="104" height="1" fill="#241a0e"/>
+  <!-- 木场上沿接光棱 -->
+  <rect x="15" y="18" width="210" height="1" fill="#5f4830"/>
+
+  <!-- 4. 母题:顶边内侧熔橙线(亮心 + 两侧余温) -->
+  <rect x="15" y="15" width="210" height="3" fill="#8a5a12"/>
+  <rect x="15" y="15" width="210" height="2" fill="#ff8c1a"/>
+  <rect x="24" y="15" width="192" height="1" fill="#ffe9a8"/>
+
+  <!-- 5. 木场内衬描边:把场域和铁框切干净 -->
+  <rect x="14" y="14" width="212" height="1" fill="#080503"/>
+  <rect x="14" y="145" width="212" height="1" fill="#080503"/>
+  <rect x="14" y="14" width="1" height="132" fill="#080503"/>
+  <rect x="225" y="14" width="1" height="132" fill="#080503"/>
+
+  <!-- 6. 四角铁角码:L 形压角板,带上亮下暗 + 一颗铆钉 -->
+  <g fill="#4a5058">
+    <path d="M0,0 H32 V8 H8 V32 H0 Z"/>
+    <path d="M240,0 H208 V8 H232 V32 H240 Z"/>
+    <path d="M0,160 H32 V152 H8 V128 H0 Z"/>
+    <path d="M240,160 H208 V152 H232 V128 H240 Z"/>
+  </g>
+  <g fill="#777c84">
+    <rect x="0" y="0" width="32" height="2"/><rect x="0" y="0" width="2" height="32"/>
+    <rect x="208" y="0" width="32" height="2"/><rect x="238" y="0" width="2" height="32"/>
+    <rect x="0" y="128" width="2" height="32"/><rect x="238" y="128" width="2" height="32"/>
+  </g>
+  <g fill="#14171a">
+    <rect x="30" y="0" width="2" height="30"/><rect x="0" y="30" width="30" height="2"/>
+    <rect x="208" y="0" width="2" height="30"/><rect x="210" y="30" width="30" height="2"/>
+    <rect x="30" y="130" width="2" height="30"/><rect x="0" y="128" width="30" height="2"/>
+    <rect x="208" y="130" width="2" height="30"/><rect x="210" y="128" width="30" height="2"/>
+  </g>
+
+  <!-- 7. 铆钉:暗圈 + 中调面 + 左上高光点(纯方块,保持像素感) -->
+  <g>
+    <g fill="#14171a"><rect x="6" y="6" width="10" height="10"/><rect x="224" y="6" width="10" height="10"/><rect x="6" y="144" width="10" height="10"/><rect x="224" y="144" width="10" height="10"/></g>
+    <g fill="#5f666e"><rect x="7" y="7" width="8" height="8"/><rect x="225" y="7" width="8" height="8"/><rect x="7" y="145" width="8" height="8"/><rect x="225" y="145" width="8" height="8"/></g>
+    <g fill="#8f979f"><rect x="8" y="8" width="6" height="6"/><rect x="226" y="8" width="6" height="6"/><rect x="8" y="146" width="6" height="6"/><rect x="226" y="146" width="6" height="6"/></g>
+    <g fill="#c8cfd6"><rect x="8" y="8" width="2" height="2"/><rect x="226" y="8" width="2" height="2"/><rect x="8" y="146" width="2" height="2"/><rect x="226" y="146" width="2" height="2"/></g>
+  </g>
+
+  <!-- 8. 边条中点不放任何标记:上下边条是横向可拉伸区,细节放这里会被拉成条纹。
+       铆钉只存在于不可拉伸的四角角区。 -->
+</svg>

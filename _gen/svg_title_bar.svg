@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  《淬火》标题匾额 · 9-slice 可切 · 与 svg_panel_frame.svg 同一套语汇
+  规则:只用 tokens 色值;crispEdges 关抗锯齿;细节只放在不可拉伸的角区/端帽区。
+  横向可拉伸区(上下边条、中间场域)只放水平对称的平色与横纹,避免拉伸变形。
+  切片宽 = 34(含铁端帽与角码)。
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="272" height="72" viewBox="0 0 272 72"
+     shape-rendering="crispEdges">
+
+  <!-- 1. 外描边 -->
+  <rect x="0" y="0" width="272" height="72" fill="#080503"/>
+
+  <!-- 2. 铁体 + 左上亮面 / 右下暗面 -->
+  <rect x="3" y="3" width="266" height="66" fill="#2b3036"/>
+  <rect x="3" y="3" width="266" height="2" fill="#777c84"/>
+  <rect x="3" y="3" width="2" height="66" fill="#5f666e"/>
+  <rect x="3" y="66" width="266" height="3" fill="#14171a"/>
+  <rect x="266" y="3" width="3" height="66" fill="#1a1d21"/>
+
+  <!-- 3. 木板心:三段平色 + 板缝 + 上沿接光 -->
+  <rect x="34" y="12" width="204" height="48" fill="#1a1106"/>
+  <rect x="34" y="12" width="204" height="17" fill="#4d3a22"/>
+  <rect x="34" y="29" width="204" height="16" fill="#3d2c17"/>
+  <rect x="34" y="45" width="204" height="15" fill="#33240f"/>
+  <rect x="34" y="27" width="204" height="2" fill="#0f0a04"/>
+  <rect x="34" y="43" width="204" height="2" fill="#0f0a04"/>
+  <rect x="34" y="15" width="204" height="1" fill="#5f4830"/>
+  <rect x="60" y="21" width="120" height="1" fill="#5a4128"/>
+  <rect x="96" y="36" width="110" height="1" fill="#4a3520"/>
+  <rect x="52" y="52" width="130" height="1" fill="#241a0e"/>
+
+  <!-- 4. 母题:匾顶熔橙线 -->
+  <rect x="34" y="12" width="204" height="3" fill="#8a5a12"/>
+  <rect x="34" y="12" width="204" height="2" fill="#ff8c1a"/>
+  <rect x="42" y="12" width="188" height="1" fill="#ffe9a8"/>
+
+  <!-- 5. 木心内衬描边 -->
+  <rect x="33" y="11" width="206" height="1" fill="#080503"/>
+  <rect x="33" y="60" width="206" height="1" fill="#080503"/>
+  <rect x="33" y="11" width="1" height="50" fill="#080503"/>
+  <rect x="238" y="11" width="1" height="50" fill="#080503"/>
+
+  <!-- 6. 左右铁端帽:压住匾的两端,带倒角与铆钉 -->
+  <g>
+    <rect x="6" y="8" width="24" height="56" fill="#3a4046"/>
+    <rect x="6" y="8" width="24" height="2" fill="#777c84"/>
+    <rect x="6" y="8" width="2" height="56" fill="#5f666e"/>
+    <rect x="28" y="8" width="2" height="56" fill="#14171a"/>
+    <rect x="6" y="62" width="24" height="2" fill="#14171a"/>
+
+    <rect x="242" y="8" width="24" height="56" fill="#3a4046"/>
+    <rect x="242" y="8" width="24" height="2" fill="#5f666e"/>
+    <rect x="242" y="8" width="2" height="56" fill="#4a5058"/>
+    <rect x="264" y="8" width="2" height="56" fill="#14171a"/>
+    <rect x="242" y="62" width="24" height="2" fill="#14171a"/>
+  </g>
+
+  <!-- 7. 端帽铆钉:各两颗,纵向排布,位于不可拉伸的端区 -->
+  <g>
+    <g fill="#14171a"><rect x="13" y="16" width="10" height="10"/><rect x="13" y="46" width="10" height="10"/><rect x="249" y="16" width="10" height="10"/><rect x="249" y="46" width="10" height="10"/></g>
+    <g fill="#5f666e"><rect x="14" y="17" width="8" height="8"/><rect x="14" y="47" width="8" height="8"/><rect x="250" y="17" width="8" height="8"/><rect x="250" y="47" width="8" height="8"/></g>
+    <g fill="#8f979f"><rect x="15" y="18" width="6" height="6"/><rect x="15" y="48" width="6" height="6"/><rect x="251" y="18" width="6" height="6"/><rect x="251" y="48" width="6" height="6"/></g>
+    <g fill="#c8cfd6"><rect x="15" y="18" width="2" height="2"/><rect x="15" y="48" width="2" height="2"/><rect x="251" y="18" width="2" height="2"/><rect x="251" y="48" width="2" height="2"/></g>
+  </g>
+
+  <!-- 8. 四角角码:小 L 形,压住匾的四角 -->
+  <g fill="#4a5058">
+    <path d="M0,0 H18 V5 H5 V18 H0 Z"/>
+    <path d="M272,0 H254 V5 H267 V18 H272 Z"/>
+    <path d="M0,72 H18 V67 H5 V54 H0 Z"/>
+    <path d="M272,72 H254 V67 H267 V54 H272 Z"/>
+  </g>
+  <g fill="#777c84">
+    <rect x="0" y="0" width="18" height="2"/><rect x="0" y="0" width="2" height="18"/>
+    <rect x="254" y="0" width="18" height="2"/><rect x="270" y="0" width="2" height="18"/>
+  </g>
+</svg>

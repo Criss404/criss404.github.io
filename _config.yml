@@ -41,3 +41,8 @@ kramdown:
   auto_ids: true
   hard_wrap: false
   syntax_highlighter: rouge
+
+# 以下划线开头的目录默认被 Jekyll 忽略,需显式声明才能发布到站点
+include:
+  - _real
+  - _gen

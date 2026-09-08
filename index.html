@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>《淬火》界面设计语言 v2 草图(纯 CSS,不依赖未到手素材)</title>
+<style>
+@font-face{font-family:LXGW;src:url('godot/fonts/lxgw_wenkai_gb_screen.ttf')}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0b0805;font-family:LXGW,'Microsoft YaHei',serif;color:#e8d5b0;padding:12px}
+h1{font-size:20px;color:#a89272;margin:6px 4px 24px;font-weight:normal}
+.note{font-size:14px;color:#6a5238;margin:-16px 4px 28px;line-height:1.7}
+.slot{width:720px;margin:0 auto 56px}
+.slot h2{font-size:18px;color:#ffb347;margin:0 0 10px 4px;font-weight:normal}
+.holder{width:382px;height:680px;overflow:hidden;background:#000}
+.frame{transform:scale(0.5305);transform-origin:top left}
+.solo .holder{width:720px;height:1280px}
+.solo .frame{transform:none}
+img.px{image-rendering:pixelated}
+
+:root{
+  --void:#070505; --deep:#0d0a08;
+  --p-hi:#4d3a22; --p-md:#33240f; --p-lo:#1a1106;
+  --edge:#080503;
+  --gold:#ffc93c; --gold-lt:#ffe9a8; --gold-dk:#8a5a12;
+  --ink:#f4e6c8; --muted:#ab9474;
+  --fire:#ff8c1a; --ember:#e25822; --quench:#7fd4d4; --ok:#8fe08f; --danger:#ff6b6b;
+}
+.screen{width:720px;height:1280px;background:var(--deep);position:relative;overflow:hidden;color:var(--ink);font-size:26px}
+
+.panel{position:relative;border:3px solid var(--edge);border-radius:10px;
+  background:linear-gradient(180deg,var(--p-hi) 0%,var(--p-md) 46%,var(--p-lo) 100%);
+  box-shadow:inset 0 2px 0 rgba(255,220,150,.30),inset 0 -3px 0 rgba(0,0,0,.45),
+    inset 2px 0 0 rgba(255,220,150,.08),inset -2px 0 0 rgba(0,0,0,.25),
+    0 6px 0 rgba(0,0,0,.5),0 12px 26px rgba(0,0,0,.62)}
+.panel::before{content:'';position:absolute;inset:4px;border:1px solid rgba(255,201,60,.30);border-radius:6px;pointer-events:none}
+.panel::after{content:'';position:absolute;inset:3px;pointer-events:none;opacity:.8;
+  background:
+    linear-gradient(var(--gold),var(--gold)) 0 0/16px 3px no-repeat,
+    linear-gradient(var(--gold),var(--gold)) 0 0/3px 16px no-repeat,
+    linear-gradient(var(--gold),var(--gold)) 100% 0/16px 3px no-repeat,
+    linear-gradient(var(--gold),var(--gold)) 100% 0/3px 16px no-repeat,
+    linear-gradient(var(--gold),var(--gold)) 0 100%/16px 3px no-repeat,
+    linear-gradient(var(--gold),var(--gold)) 0 100%/3px 16px no-repeat,
+    linear-gradient(var(--gold),var(--gold)) 100% 100%/16px 3px no-repeat,
+    linear-gradient(var(--gold),var(--gold)) 100% 100%/3px 16px no-repeat}
+.panel.wood{background:linear-gradient(180deg,#5a4128 0%,#3d2a16 50%,#251809 100%)}
+.panel.stone{background:linear-gradient(180deg,#4a4640 0%,#332f2a 50%,#1d1a16 100%)}
+
+.btn{position:relative;display:flex;align-items:center;justify-content:center;gap:14px;flex:none;
+  border:3px solid var(--edge);border-radius:12px;color:#fff8e6;letter-spacing:2px;
+  text-shadow:0 2px 0 rgba(0,0,0,.6);
+  background:linear-gradient(180deg,var(--a,#c8791f) 0%,var(--b,#9c5411) 52%,var(--c,#6f3a0a) 100%);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.30),inset 0 -7px 12px rgba(0,0,0,.34),
+    0 5px 0 var(--base,#3a1f08),0 10px 18px rgba(0,0,0,.55)}
+.btn.down{transform:translateY(4px);box-shadow:inset 0 2px 0 rgba(255,255,255,.18),inset 0 4px 10px rgba(0,0,0,.5),0 1px 0 var(--base,#3a1f08),0 3px 8px rgba(0,0,0,.5)}
+.btn.gold{--a:#ffdf7a;--b:#e8ac2b;--c:#b0760f;--base:#4d3005;color:#3b2506;text-shadow:0 1px 0 rgba(255,255,255,.35)}
+.btn.blood{--a:#e8542f;--b:#b93018;--c:#7d1c0a;--base:#3d0d04}
+.btn.quench{--a:#8fe6e6;--b:#3fa8b8;--c:#1e6d80;--base:#0b3340;color:#04222a;text-shadow:0 1px 0 rgba(255,255,255,.3)}
+.btn.steel{--a:#8b97a2;--b:#5f6a75;--c:#3d454d;--base:#171b1e}
+.btn.ghost{--a:#2e2313;--b:#241a0e;--c:#181008;--base:#0b0703;color:var(--muted)}
+.btn.dis{--a:#2a241c;--b:#211b14;--c:#181310;--base:#0a0806;color:#6a5f4e}
+.btn .stack{display:flex;flex-direction:column;align-items:center;line-height:1.15}
+.btn .sub{font-size:19px;letter-spacing:0;color:rgba(255,248,230,.72);margin-top:5px;text-align:center}
+.btn.gold .sub{color:rgba(59,37,6,.7)}
+
+.hud{position:absolute;left:20px;right:20px;top:20px;height:84px;display:flex;align-items:center;gap:10px;z-index:20}
+.pill{display:inline-flex;align-items:center;gap:9px;height:58px;padding:0 16px 0 8px;border-radius:29px;white-space:nowrap;
+  background:linear-gradient(180deg,#33260f,#120c05);border:2px solid #050302;font-size:24px;color:var(--ink);
+  box-shadow:inset 0 1px 0 rgba(255,220,150,.30),inset 0 -2px 6px rgba(0,0,0,.6),0 3px 0 rgba(0,0,0,.55),0 6px 12px rgba(0,0,0,.5)}
+.pill .ico{width:44px;height:44px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:22px;color:#3b2506;
+  background:radial-gradient(circle at 35% 30%,#ffe08a,#c8811a 60%,#7a4a06);border:2px solid #050302;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
+.pill .ico.ore{background:radial-gradient(circle at 35% 30%,#e2e8ee,#8d98a4 60%,#424b54);color:#1d242b}
+.pill .ico.cal{background:radial-gradient(circle at 35% 30%,#f6e8ca,#b89560 60%,#5a4426);color:#2b1c0a}
+.pill .ico.rent{background:radial-gradient(circle at 35% 30%,#ffc0a8,#c8502a 60%,#6d1f0c);color:#fff0e6}
+.pill b{font-weight:normal;color:var(--gold-lt)}
+.pill.warn b{color:var(--danger)}
+.pill .plus{width:32px;height:32px;border-radius:9px;margin-left:2px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#6ec96e,#2e8b3a);border:2px solid #050302;color:#eaffea;font-size:22px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 2px 0 rgba(0,0,0,.5)}
+.sp{flex:1}
+
+.ribbon{position:relative;margin:0 auto;height:96px;display:flex;align-items:center;justify-content:center;flex:none;
+  border:3px solid var(--edge);border-radius:8px;font-size:38px;color:var(--gold-lt);letter-spacing:6px;
+  text-shadow:0 2px 0 rgba(0,0,0,.7),0 0 16px rgba(255,140,26,.35);
+  background:linear-gradient(180deg,#6b2a16 0%,#48180c 55%,#2a0e07 100%);
+  box-shadow:inset 0 2px 0 rgba(255,180,120,.35),inset 0 -3px 0 rgba(0,0,0,.5),0 5px 0 rgba(0,0,0,.5),0 10px 20px rgba(0,0,0,.6)}
+.ribbon::before,.ribbon::after{content:'';position:absolute;top:16px;bottom:16px;width:24px;
+  background:linear-gradient(180deg,#ffd875,#8a5a12);border:2px solid var(--edge)}
+.ribbon::before{left:-13px;clip-path:polygon(100% 0,100% 100%,0 50%)}
+.ribbon::after{right:-13px;clip-path:polygon(0 0,0 100%,100% 50%)}
+
+.track{position:relative;height:32px;border-radius:16px;overflow:hidden;background:linear-gradient(180deg,#0a0704,#1b1309);
+  border:2px solid #040201;box-shadow:inset 0 4px 8px rgba(0,0,0,.85),inset 0 -1px 0 rgba(255,220,150,.12)}
+.fill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(180deg,#ffd06a,#ff8c1a 46%,#c2520c);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.5),inset 0 -5px 9px rgba(0,0,0,.35)}
+.fill::after{content:'';position:absolute;left:0;right:0;top:0;height:45%;background:linear-gradient(180deg,rgba(255,255,255,.30),transparent)}
+.fill.grn{background:linear-gradient(180deg,#b8f0a0,#5cb85c 46%,#2e7d32)}
+.fill.red{background:linear-gradient(180deg,#ffa090,#e04a2a 46%,#8d1f0d)}
+.fill.ylw{background:linear-gradient(180deg,#fff0a0,#ffc93c 46%,#b8860b)}
+.ticks{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(90deg,transparent 0 22px,rgba(0,0,0,.4) 22px 24px)}
+.goal{position:absolute;top:-4px;bottom:-4px;width:3px;background:var(--gold-lt);box-shadow:0 0 6px rgba(255,201,60,.9);z-index:3}
+
+.chip{display:inline-flex;align-items:center;gap:6px;height:44px;padding:0 14px;border-radius:8px;font-size:22px;color:#3b2506;white-space:nowrap;
+  background:linear-gradient(180deg,#f4e0b0,#c9ab74);border:2px solid var(--edge);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 3px 0 rgba(0,0,0,.5)}
+.chip.dark{color:var(--gold-lt);background:linear-gradient(180deg,#3d2c14,#1a1106)}
+.badge{position:absolute;top:-16px;right:-8px;min-width:54px;height:54px;padding:0 10px;border-radius:27px;display:flex;align-items:center;justify-content:center;
+  font-size:23px;color:#3b2506;background:linear-gradient(180deg,#ffdf7a,#d99a1e);border:3px solid var(--edge);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.5),0 3px 0 rgba(0,0,0,.55);z-index:6}
+.badge.red{background:linear-gradient(180deg,#ff9a7a,#d1391a);color:#fff2e6}
+.badge.grn{background:linear-gradient(180deg,#b8f0a0,#4f9e4f);color:#0e2a0e}
+
+.scene{position:absolute;inset:0;overflow:hidden;z-index:1}
+.wall{position:absolute;left:0;right:0;top:0;background:linear-gradient(180deg,#0e0a07 0%,#332516 55%,#46331f 100%)}
+.wall::after{content:'';position:absolute;inset:0;opacity:.5;
+  background:repeating-linear-gradient(180deg,rgba(0,0,0,.38) 0 2px,transparent 2px 44px),
+             repeating-linear-gradient(90deg,rgba(255,220,150,.05) 0 92px,rgba(0,0,0,.14) 92px 96px)}
+.floor{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,#2f2114 0%,#1a1209 40%,#0b0705 100%)}
+.floor::after{content:'';position:absolute;inset:0;opacity:.45;
+  background:repeating-linear-gradient(90deg,rgba(0,0,0,.45) 0 2px,transparent 2px 64px),
+             repeating-linear-gradient(180deg,rgba(255,220,150,.05) 0 1px,transparent 1px 22px)}
+.hz{position:absolute;left:0;right:0;height:10px;z-index:3;
+  background:linear-gradient(180deg,rgba(255,201,60,.34),rgba(0,0,0,.7));box-shadow:0 3px 8px rgba(0,0,0,.7)}
+.glow{position:absolute;border-radius:50%;pointer-events:none;mix-blend-mode:screen;
+  background:radial-gradient(circle,rgba(255,160,60,.42) 0%,rgba(255,120,30,.16) 40%,transparent 70%)}
+.vig{position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 180px 70px rgba(0,0,0,.66);z-index:2}
+.grain{position:absolute;inset:0;pointer-events:none;opacity:.09;mix-blend-mode:overlay;z-index:2;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.5) 0 1px,transparent 1px 3px)}
+.ember{position:absolute;width:6px;height:6px;border-radius:50%;background:#ffcf6a;box-shadow:0 0 10px 3px rgba(255,150,40,.75);opacity:.85;z-index:4}
+.contact{position:absolute;border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.66),transparent 70%);z-index:3}
+
+.ph{position:absolute;border:2px dashed rgba(255,201,60,.42);border-radius:8px;background:rgba(255,201,60,.05);
+  display:flex;align-items:center;justify-content:center;text-align:center;font-size:18px;color:rgba(255,201,60,.68);line-height:1.45;padding:6px;z-index:4}
+
+.d1{font-size:132px;line-height:1;letter-spacing:14px;font-family:'STXingkai','KaiTi','LXGW',serif;
+  background:linear-gradient(180deg,#fff3c4 0%,#ffc93c 42%,#e08a18 62%,#8a4a06 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 3px 0 #2a1405) drop-shadow(0 0 26px rgba(255,140,26,.55))}
+.d2{font-size:64px;color:var(--gold-lt);text-shadow:0 3px 0 rgba(0,0,0,.7),0 0 22px rgba(255,140,26,.5)}
+.h1{font-size:44px;color:var(--gold-lt);text-shadow:0 2px 0 rgba(0,0,0,.7)}
+.h2{font-size:34px;color:var(--ink);text-shadow:0 2px 0 rgba(0,0,0,.65)}
+.bd{font-size:26px;color:var(--ink)}
+.cp{font-size:20px;color:var(--muted)}
+.gold{color:var(--gold)}.muted{color:var(--muted)}.ok{color:var(--ok)}.danger{color:var(--danger)}
+
+/* 工位:物件 + 头顶名牌 */
+.station{position:absolute;z-index:8;display:flex;flex-direction:column;align-items:center}
+.plate{position:relative;width:100%;border:3px solid var(--edge);border-radius:10px;padding:10px 10px 12px;text-align:center;
+  background:linear-gradient(180deg,#5a4326 0%,#3a2911 50%,#1d1407 100%);
+  box-shadow:inset 0 2px 0 rgba(255,220,150,.32),inset 0 -3px 0 rgba(0,0,0,.45),0 5px 0 rgba(0,0,0,.55),0 10px 20px rgba(0,0,0,.6)}
+.plate::after{content:'';position:absolute;left:50%;bottom:-11px;transform:translateX(-50%);width:18px;height:11px;
+  background:linear-gradient(180deg,#3a2911,#1d1407);clip-path:polygon(0 0,100% 0,50% 100%);border-left:2px solid var(--edge);border-right:2px solid var(--edge)}
+.plate .nm{font-size:27px;color:var(--gold-lt);letter-spacing:2px;text-shadow:0 2px 0 rgba(0,0,0,.7)}
+.plate .st{font-size:18px;color:var(--muted);margin-top:3px;white-space:nowrap}
+.body{width:100%;flex:1;margin-top:16px}
+
+/* 流程 stepper */
+.stepper{display:flex;align-items:center;gap:0;font-size:20px}
+.stepper .s{display:flex;align-items:center;gap:8px;color:var(--muted);white-space:nowrap}
+.stepper .d{width:22px;height:22px;border-radius:50%;border:2px solid #050302;background:linear-gradient(180deg,#4a3a20,#1d1407);box-shadow:inset 0 1px 0 rgba(255,220,150,.25)}
+.stepper .on{color:var(--gold-lt)}
+.stepper .on .d{background:linear-gradient(180deg,#ffdf7a,#c8811a);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 0 12px rgba(255,180,60,.6)}
+.stepper .ln{width:34px;height:3px;margin:0 10px;background:linear-gradient(90deg,#5a4426,#8a5a12)}
+
+/* 方向C 像素硬边 */
+.pxgrid{background:repeating-linear-gradient(90deg,rgba(255,255,255,.03) 0 1px,transparent 1px 16px),
+                  repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 1px,transparent 1px 16px)}
+.pxl{border:0;background:linear-gradient(180deg,#6b4d24 0%,#3d2a12 55%,#241705 100%);
+  box-shadow:0 -3px 0 #0a0603,0 3px 0 #0a0603,-3px 0 0 #0a0603,3px 0 0 #0a0603,
+    inset 0 3px 0 #a97a2a,inset -3px 0 0 rgba(0,0,0,.4),inset 0 -3px 0 rgba(0,0,0,.5)}
+.pxb{border:0;background:linear-gradient(180deg,#f0a53a 0%,#c8701a 55%,#8a4408 100%);
+  box-shadow:0 -3px 0 #170b03,0 3px 0 #170b03,-3px 0 0 #170b03,3px 0 0 #170b03,
+    inset 0 3px 0 #ffd98a,inset 0 -4px 0 rgba(0,0,0,.45)}
+.pxb2{border:0;background:linear-gradient(180deg,#6b7f95 0%,#3f4f60 55%,#242f3a 100%);
+  box-shadow:0 -3px 0 #0a0d10,0 3px 0 #0a0d10,-3px 0 0 #0a0d10,3px 0 0 #0a0d10,inset 0 3px 0 #9fb4c8,inset 0 -4px 0 rgba(0,0,0,.45)}
+
+.tok{padding:22px 26px;display:flex;flex-direction:column;gap:14px}
+.trow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sw{width:72px;height:50px;border-radius:8px;border:2px solid #000;box-shadow:0 3px 8px rgba(0,0,0,.5)}
+.swl{font-size:16px;color:var(--muted);width:72px;text-align:center}
+.tcap{font-size:20px;color:var(--gold);letter-spacing:2px;border-left:4px solid var(--gold);padding-left:10px;margin-top:4px}
+/* ===== 硬边纪律(方向 A 定稿:直角 + 统一 3px 描边 + 左上光源 + 铁水母题) ===== */
+.panel,.plate,.ribbon,.chip,.btn{border-radius:4px}
+.panel::before{border-radius:2px}
+.ph{border-radius:2px}
+.track{border-radius:6px}
+/* 母题:铁水纹 = 面板顶边一道发光的橙红铁水线,全 14 屏共用 */
+.panel,.plate{box-shadow:inset 0 3px 0 rgba(255,140,26,.45),inset 0 5px 0 rgba(255,233,168,.22),inset 0 -3px 0 rgba(0,0,0,.45),inset -3px 0 0 rgba(0,0,0,.28),0 6px 0 rgba(0,0,0,.5),0 12px 26px rgba(0,0,0,.62)}
+.ribbon{box-shadow:inset 0 3px 0 rgba(255,140,26,.5),inset 0 -3px 0 rgba(0,0,0,.5),0 5px 0 rgba(0,0,0,.5),0 10px 20px rgba(0,0,0,.6)}
+.chip{box-shadow:inset 0 2px 0 rgba(255,255,255,.55),inset 0 -2px 0 rgba(0,0,0,.18),0 3px 0 rgba(0,0,0,.5)}
+.btn{box-shadow:inset 2px 2px 0 rgba(255,255,255,.32),inset -2px -2px 0 rgba(0,0,0,.28),inset 0 -7px 12px rgba(0,0,0,.34),0 5px 0 var(--base,#3a1f08),0 10px 18px rgba(0,0,0,.55)}
+.molten{position:relative}
+.molten::after{content:'';position:absolute;left:14px;right:14px;top:0;height:2px;background:linear-gradient(90deg,transparent,#ff8c1a 20%,#ffe9a8 50%,#ff8c1a 80%,transparent);box-shadow:0 0 10px rgba(255,140,26,.8)}
+/* ===== 组件配方:木板面 + 铁角码铆钉 + 熔橙顶线(金色只用于文字与纹章) ===== */
+.luxpanel{position:relative;border:3px solid var(--edge);border-radius:0;
+  background:linear-gradient(180deg,#4d3a22 0 22%,#3d2c17 22% 48%,#33240f 48% 74%,#1a1106 74% 100%);
+  box-shadow:inset 3px 3px 0 rgba(255,220,150,.18),inset -3px -3px 0 rgba(0,0,0,.55),
+    0 6px 0 rgba(0,0,0,.55),0 14px 28px rgba(0,0,0,.66)}
+.luxpanel::before{content:'';position:absolute;left:6px;right:6px;top:0;height:3px;
+  background:linear-gradient(90deg,transparent,#ff8c1a 18%,#ffe9a8 50%,#ff8c1a 82%,transparent)}
+.luxpanel .cn{position:absolute;width:22px;height:22px;pointer-events:none;
+  background:linear-gradient(160deg,#777c84 0 40%,#4a5058 40% 75%,#2b3036 75% 100%);
+  border:2px solid var(--edge);box-shadow:inset 1px 1px 0 rgba(255,255,255,.3)}
+.luxpanel .cn::after{content:'';position:absolute;left:50%;top:50%;width:6px;height:6px;
+  transform:translate(-50%,-50%);border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#cfd4da,#6b7078 60%,#2b3036);
+  box-shadow:0 0 0 1px var(--edge)}
+.luxpanel .c1{left:2px;top:2px}
+.luxpanel .c2{right:2px;top:2px}
+.luxpanel .c3{left:2px;bottom:2px}
+.luxpanel .c4{right:2px;bottom:2px}
+.luxframe{position:relative;border:3px solid var(--edge);border-radius:0;
+  background:linear-gradient(180deg,#5a4128 0 30%,#41301c 30% 62%,#251809 62% 100%);
+  box-shadow:inset 3px 3px 0 rgba(255,220,150,.22),inset -3px -3px 0 rgba(0,0,0,.55),0 6px 0 rgba(0,0,0,.55)}
+.luxframe::before,.luxframe::after{content:'';position:absolute;top:-3px;bottom:-3px;width:26px;
+  background:linear-gradient(180deg,#777c84 0 45%,#4a5058 45% 80%,#2b3036 80% 100%);
+  border:3px solid var(--edge)}
+.luxframe::before{left:-3px}
+.luxframe::after{right:-3px}
+.luxbar{position:relative;height:26px;border:3px solid var(--edge);border-radius:0;background:#0a0704;overflow:hidden;
+  box-shadow:inset 0 3px 0 rgba(0,0,0,.85)}
+.luxbar i{position:absolute;left:0;top:0;bottom:0;display:block;border-radius:0;
+  background:linear-gradient(180deg,#ffe9a8 0 30%,#ff8c1a 30% 68%,#c2520c 68% 100%)}
+.luxdiv{height:6px;border-top:2px solid var(--edge);border-bottom:2px solid var(--edge);
+  background:linear-gradient(90deg,transparent,#8a5a12 22%,#ffc93c 50%,#8a5a12 78%,transparent)}
+/* ===== 像素化覆盖(?px=1 启用):像素字体 + 硬边无模糊 UI ===== */
+@font-face{font-family:Pixel;src:url('godot/fonts/fusion_pixel_12px.ttf')}
+@font-face{font-family:Pixel16;src:url('art_staging/fonts/ark-pixel-16px-monospaced-zh_cn.ttf')}
+@font-face{font-family:Pixel16p;src:url('art_staging/fonts/ark-pixel-16px-proportional-zh_cn.ttf')}
+body.px .screen,body.px .d1,body.px .d2,body.px .h1,body.px .h2,body.px .bd,body.px .cp,
+body.px .btn,body.px .pill,body.px .chip,body.px .plate,body.px .ribbon,body.px .stepper{
+  font-family:Pixel,'LXGW',monospace;letter-spacing:1px}
+body.px.px16 .screen,body.px.px16 .bd,body.px.px16 .cp,body.px.px16 .btn,body.px.px16 .pill,
+body.px.px16 .chip,body.px.px16 .badge,body.px.px16 .stepper,body.px.px16 .plate .st,
+body.px.px16 .h2,body.px.px16 .d2{font-family:Pixel16p,'LXGW',monospace}
+body.px.px16 .d1,body.px.px16 .h1,body.px.px16 .ribbon,body.px.px16 .plate .nm{
+  font-family:Pixel16,'LXGW',monospace}
+body.px.px16p .screen,body.px.px16p .d1,body.px.px16p .d2,body.px.px16p .h1,body.px.px16p .h2,
+body.px.px16p .bd,body.px.px16p .cp,body.px.px16p .btn,body.px.px16p .pill,body.px.px16p .chip,
+body.px.px16p .plate,body.px.px16p .ribbon,body.px.px16p .stepper,body.px.px16p .badge{
+  font-family:Pixel16p,'LXGW',monospace}
+body.px .d1{font-size:120px;letter-spacing:10px;filter:none;color:#ffd76a;
+  background:none;-webkit-text-fill-color:#ffd76a;
+  text-shadow:3px 3px 0 #3a1c05,6px 6px 0 rgba(0,0,0,.55)}
+body.px .panel,body.px .plate,body.px .luxpanel,body.px .ribbon,body.px .chip,body.px .pill,body.px .btn{
+  border-radius:0!important;
+  clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px)}
+body.px .panel,body.px .plate,body.px .ribbon{
+  border:3px solid #080503;
+  background:linear-gradient(180deg,#4d3a22 0 25%,#3d2c17 25% 50%,#2c1e0d 50% 75%,#1a1106 75% 100%);
+  box-shadow:inset 3px 3px 0 rgba(255,220,150,.26),inset -3px -3px 0 rgba(0,0,0,.5),0 6px 0 rgba(0,0,0,.55)}
+body.px .luxpanel{background:linear-gradient(180deg,#463320 0 25%,#372715 25% 50%,#271a0c 50% 75%,#170f06 75% 100%);
+  box-shadow:inset 3px 3px 0 rgba(255,190,90,.22),inset 0 -3px 0 rgba(0,0,0,.5),inset 3px 0 0 rgba(0,0,0,.25),
+    inset -3px 0 0 rgba(0,0,0,.25),0 6px 0 rgba(0,0,0,.55)}
+body.px .luxpanel::before,body.px .panel::before{border-radius:0}
+body.px .btn{border:3px solid #080503;
+  background:linear-gradient(180deg,var(--a) 0 30%,var(--b) 30% 62%,var(--c) 62% 100%);
+  box-shadow:inset 3px 3px 0 rgba(255,255,255,.34),inset -3px -3px 0 rgba(0,0,0,.42),0 6px 0 var(--base);
+  text-shadow:2px 2px 0 rgba(0,0,0,.7)}
+body.px .btn.gold{background:linear-gradient(180deg,#ffdf7a 0 30%,#e8ac2b 30% 62%,#a8700f 62% 100%)}
+body.px .pill{border-radius:0;border:3px solid #050302;height:54px;
+  background:linear-gradient(180deg,#3a2b12 0 40%,#241808 40% 100%);
+  box-shadow:inset 2px 2px 0 rgba(255,220,150,.28),inset -2px -2px 0 rgba(0,0,0,.5),0 4px 0 rgba(0,0,0,.6)}
+body.px .pill .ico,body.px .pill .plus{border-radius:0}
+body.px .chip{border:3px solid #080503;background:linear-gradient(180deg,#f0dcae 0 45%,#c9ab74 45% 100%);
+  box-shadow:inset 2px 2px 0 rgba(255,255,255,.5),0 4px 0 rgba(0,0,0,.5)}
+body.px .badge{border-radius:0;border:3px solid #080503;box-shadow:inset 2px 2px 0 rgba(255,255,255,.4),0 4px 0 rgba(0,0,0,.55)}
+body.px .track,body.px .luxbar{border-radius:0;border:3px solid #040201;
+  background:linear-gradient(180deg,#050302 0 50%,#1b1309 50% 100%);box-shadow:inset 3px 3px 0 rgba(0,0,0,.85)}
+body.px .fill,body.px .luxbar i{box-shadow:inset 0 3px 0 rgba(255,255,255,.45);border-radius:0}
+body.px .stepper .d{border-radius:0}
+body.px .d2,body.px .h1,body.px .h2,body.px .bd,body.px .cp,body.px .plate .nm{text-shadow:2px 2px 0 rgba(0,0,0,.8)}
+body.px .vig{box-shadow:inset 0 0 120px 60px rgba(0,0,0,.7)}
+body.px .molten::after{box-shadow:none;height:3px}
+body.px .btn .sub,body.px .plate .st{letter-spacing:0}
+/* --- 16 档阶梯的容器补偿:字号平均涨 23%,横向排满的行要收紧 --- */
+body.px.px16 .badge,body.px.px16p .badge{font-size:16px!important;height:48px;min-width:48px;top:-22px;right:-10px}
+body.px.px16 .hud,body.px.px16p .hud{left:12px;right:12px;gap:6px}
+body.px.px16 .pill,body.px.px16p .pill{height:64px;gap:6px;padding:0 10px 0 5px;font-size:32px!important}
+body.px.px16 .pill .ico,body.px.px16p .pill .ico{width:32px;height:32px;font-size:16px!important}
+body.px.px16 .pill .plus,body.px.px16p .pill .plus{width:32px;height:32px;margin-left:0}
+/* ===== 真素材覆盖:?asset=1 AI 生成件 / ?asset=2 Colorosse dusk 换色件 ===== */
+/* 切片宽 = 量测/官方值:AI panel 39 / banner 62;dusk window 16 / header 8 */
+body.asset .luxpanel{
+  border:18px solid transparent;
+  border-image:url('_gen/panel.png') 39 fill / 18px stretch;
+  background:none;box-shadow:none;border-radius:0}
+body.asset .luxpanel::before{display:none}
+body.asset .luxpanel .cn{display:none}
+body.asset .luxframe{
+  border:20px solid transparent;
+  border-image:url('_gen/banner.png') 62 fill / 20px stretch;
+  background:none;box-shadow:none;border-radius:0}
+body.asset .luxframe::before,body.asset .luxframe::after{display:none}
+body.dusk .luxpanel{
+  border:16px solid transparent;
+  border-image:url('_gen/dusk_window.png') 16 fill / 16px stretch;
+  background:none;box-shadow:none;border-radius:0;padding:4px 10px}
+body.dusk .luxpanel::before{display:none}
+body.dusk .luxpanel .cn{display:none}
+body.dusk .luxframe{
+  border:8px solid transparent;
+  border-image:url('_gen/dusk_header.png') 8 fill / 8px stretch;
+  background:none;box-shadow:none;border-radius:0}
+body.dusk .luxframe::before,body.dusk .luxframe::after{display:none}
+body.px.dusk .luxpanel,body.px.dusk .plate,body.px.dusk .ribbon,
+body.px.asset .luxpanel,body.px.asset .plate,body.px.asset .ribbon{clip-path:none}
+/* ===== Lamoot RPG GUI 皮肤(?skin=lam):木板 + 黄铜角码,语义色用色罩保留 ===== */
+body.lam .luxpanel{
+  border:20px solid transparent;
+  border-image:url('_gen/lam_bar_a.png') 22 fill / 20px stretch;
+  background:none;box-shadow:none;border-radius:0;padding:2px 8px}
+body.lam .luxpanel::before{display:none}
+body.lam .luxpanel .cn{display:none}
+body.lam .luxframe{
+  border:22px solid transparent;
+  border-image:url('_gen/lam_bar_b.png') 24 fill / 22px stretch;
+  background:none;box-shadow:none;border-radius:0}
+body.lam .luxframe::before,body.lam .luxframe::after{display:none}
+body.lam .luxdiv{height:14px;border:0;background:url('_gen/lam_divider.png') center/100% 100% no-repeat}
+body.lam .btn{
+  border:15px solid transparent;
+  border-image:url('_gen/lam_bar_c.png') 18 / 15px stretch;
+  box-shadow:none;border-radius:0;text-shadow:0 2px 3px rgba(0,0,0,.85);color:var(--gold-lt)}
+body.lam .btn.gold{background:linear-gradient(180deg,rgba(255,201,60,.50),rgba(176,118,15,.50))}
+body.lam .btn.blood{background:linear-gradient(180deg,rgba(232,84,47,.48),rgba(61,13,4,.52));color:#ffe8dc}
+body.lam .btn.quench{background:linear-gradient(180deg,rgba(143,230,230,.42),rgba(11,51,64,.52));color:#e9ffff}
+body.lam .btn.steel{background:linear-gradient(180deg,rgba(139,151,162,.40),rgba(23,27,30,.52))}
+body.lam .btn.ghost{background:linear-gradient(180deg,rgba(46,35,19,.42),rgba(11,7,3,.52))}
+body.lam .btn.dis{background:linear-gradient(180deg,rgba(20,16,10,.62),rgba(8,6,4,.66));color:#6a5f4e}
+body.lam .btn.down{transform:translateY(3px);filter:brightness(.82)}
+body.lam .btn:hover{filter:brightness(1.16)}
+body.px.lam .btn,body.px.lam .luxpanel,body.px.lam .luxframe,body.px.lam .plate,body.px.lam .ribbon{clip-path:none}
+/* ===== SVG 自绘皮肤(?skin=svg):矢量件按目标尺寸栅格化,色值全部取自 tokens ===== */
+/* 源角区 32 单位;border 16px 即 0.5 缩放,适配约 90px 高的面板 */
+body.svg .luxpanel{
+  border:16px solid transparent;
+  border-image:url('_gen/svg_panel_frame.svg') 32 fill / 16px stretch;
+  background:none;box-shadow:none;border-radius:0;padding:2px 8px}
+body.svg .luxpanel::before{display:none}
+body.svg .luxpanel .cn{display:none}
+body.svg .luxframe{
+  border:17px solid transparent;
+  border-image:url('_gen/svg_title_bar.svg') 34 fill / 17px stretch;
+  background:none;box-shadow:none;border-radius:0}
+body.svg .luxframe::before,body.svg .luxframe::after{display:none}
+body.px.svg .luxpanel,body.px.svg .luxframe{clip-path:none}
+/* ===== 成品件皮肤(?skin=sliced):直接用切好的 slice,按角色装配 ===== */
+/* 实测四边不等厚,必须用四边独立 slice(上 右 下 左),否则上下框会被误判进
+   中间平色区,纵向拉伸后糊成一圈金边:
+     role_bar  左20 右20 上28 下30   role_btn 左24 右24 上27 下25 */
+body.sl .luxpanel{
+  border:20px solid transparent;
+  border-image:url('_gen/role_bar.png') 28 20 30 20 fill / 20px stretch;
+  background:none;box-shadow:none;border-radius:0;padding:2px 10px}
+body.sl .luxpanel::before{display:none}
+body.sl .luxpanel .cn{display:none}
+body.sl .luxframe{
+  border:20px solid transparent;
+  border-image:url('_gen/role_bar.png') 28 20 30 20 fill / 20px stretch;
+  background:none;box-shadow:none;border-radius:0}
+body.sl .luxframe::before,body.sl .luxframe::after{display:none}
+body.sl .plate{
+  border:20px solid transparent;
+  border-image:url('_gen/role_bar.png') 28 20 30 20 fill / 20px stretch;
+  background:none;box-shadow:none;border-radius:0}
+body.sl .plate::after{display:none}
+body.sl .pill{
+  border:8px solid transparent;
+  border-image:url('_gen/role_btn.png') 27 24 25 24 fill / 8px stretch;
+  background:none;box-shadow:none;border-radius:0;
+  height:64px;gap:4px;padding:0 6px 0 3px}
+body.sl .btn{
+  border:16px solid transparent;
+  border-image:url('_gen/role_btn.png') 27 24 25 24 fill / 16px stretch;
+  background:none;box-shadow:none;border-radius:0;color:var(--gold-lt);text-shadow:0 2px 0 rgba(0,0,0,.85)}
+/* CTA 用 role_bar(420x95 = 4.42),与 660x150 的框比例吻合。
+   空间够,四条边一律按源件实测厚度 1:1 渲染,避免上下框被压缩成浓金块 */
+body.sl .btn.gold{
+  border-style:solid;border-color:transparent;
+  border-width:28px 20px 30px 20px;
+  border-image:url('_gen/role_bar.png') 28 20 30 20 fill / 28px 20px 30px 20px stretch;
+  background:none;box-shadow:none;border-radius:0}
+body.sl .btn:hover{filter:brightness(1.16)}
+body.sl .btn.down{transform:translateY(3px);filter:brightness(.84)}
+/* 浅灰面那件本来就是 disabled/hover 态,用在禁用上正好 */
+body.sl .btn.dis{
+  border-image-source:url('_gen/role_pill.png');
+  filter:saturate(.45) brightness(.8);color:#8d8577}
+body.px.sl .luxpanel,body.px.sl .luxframe,body.px.sl .plate,body.px.sl .pill,body.px.sl .btn,body.px.sl .ribbon{clip-path:none}
+</style>
+</head>
+<body>
+<h1>《淬火》界面设计语言 v2 草图(纯 CSS 质感,不依赖未到手素材;虚线框 = 待素材位)</h1>
+<div class="note">
+<b>方向 A「炉前工作台」已拍板,已应用硬边纪律(直角 + 统一 3px 描边 + 左上光源)与贯穿母题"铁水纹"(面板顶边发光橙线)。全 14 屏已铺满:</b><br>
+?only=menu 主菜单 · hub 经营主页 · matshop 材料行 · forgesel 锻炉选料 · forge 锻造 · sold 淬火定型 · prep 上架准备 · market 集市成交 · rent 周结算 · fail 倒闭 · swordcodex 名剑谱 · codex 手艺图鉴 · settings 设置 · about 关于署名<br>
+另有 ?only=tokens 设计 tokens 表,?only=hubB / hubC 为落选方向 B/C 的 hub 对比稿(留档)。<br>
+虚线框 = 待素材位;本轮只定界面语言与构图,选定后按这套语言去找/裁/画素材。
+</div>
+
+<!-- 0 tokens -->
+<div class="slot" data-s="tokens"><h2>0 设计 tokens(色板 · 材质配方 · 层级)</h2><div class="holder"><div class="frame"><div class="screen" style="background:var(--void);flex-direction:column">
+  <div class="ribbon" style="width:400px;margin-top:22px">设 计 tokens</div>
+  <div class="tok" style="flex:1;overflow:hidden">
+    <div class="tcap">明度阶梯 —— 廉价感首要成因是全场同明度(现稿 背景#16100b / 面板#241a10 几乎无差)</div>
+    <div class="trow">
+      <div><div class="sw" style="background:#070505"></div><div class="swl">void</div></div>
+      <div><div class="sw" style="background:#1a1106"></div><div class="swl">panel底</div></div>
+      <div><div class="sw" style="background:#33240f"></div><div class="swl">panel中</div></div>
+      <div><div class="sw" style="background:#4d3a22"></div><div class="swl">panel顶</div></div>
+      <div><div class="sw" style="background:#46331f"></div><div class="swl">墙面亮</div></div>
+      <div><div class="sw" style="background:#ab9474"></div><div class="swl">次文字</div></div>
+      <div><div class="sw" style="background:#f4e6c8"></div><div class="swl">主文字</div></div>
+      <div><div class="sw" style="background:#ffc93c"></div><div class="swl">金</div></div>
+    </div>
+    <div class="tcap">语义色 —— 全游戏只用这 5 个强调色,一个色一件事</div>
+    <div class="trow">
+      <div><div class="sw" style="background:linear-gradient(180deg,#ffdf7a,#b0760f)"></div><div class="swl">主CTA</div></div>
+      <div><div class="sw" style="background:linear-gradient(180deg,#e8542f,#7d1c0a)"></div><div class="swl">打铁/危</div></div>
+      <div><div class="sw" style="background:linear-gradient(180deg,#8fe6e6,#1e6d80)"></div><div class="swl">淬火</div></div>
+      <div><div class="sw" style="background:linear-gradient(180deg,#b8f0a0,#2e7d32)"></div><div class="swl">成交</div></div>
+      <div><div class="sw" style="background:linear-gradient(180deg,#8b97a2,#3d454d)"></div><div class="swl">铁/禁用</div></div>
+    </div>
+    <div class="tcap">面板配方 = 三段渐变 + 3px 外描边 + 顶内高光 + 底内暗 + 内金线 + 四角描金 + 落地投影</div>
+    <div class="trow" style="gap:16px">
+      <div class="panel" style="width:170px;height:96px;display:flex;align-items:center;justify-content:center;font-size:19px">panel</div>
+      <div class="panel wood" style="width:170px;height:96px;display:flex;align-items:center;justify-content:center;font-size:19px">wood</div>
+      <div class="panel stone" style="width:170px;height:96px;display:flex;align-items:center;justify-content:center;font-size:19px">stone</div>
+      <div class="chip">chip 浅底</div>
+      <div class="chip dark">chip 暗底</div>
+      <div class="badge" style="position:static">5折</div>
+    </div>
+    <div class="tcap">按钮配方 = 三段渐变 + 顶高光 + 实体底座 + 按下下沉 4px(有"可按"的物理暗示)</div>
+    <div class="trow" style="gap:14px">
+      <div class="btn gold" style="width:140px;height:70px;font-size:22px">normal</div>
+      <div class="btn gold down" style="width:140px;height:70px;font-size:22px">pressed</div>
+      <div class="btn dis" style="width:140px;height:70px;font-size:22px">disabled</div>
+      <div class="btn blood" style="width:140px;height:70px;font-size:22px">hit</div>
+      <div class="btn quench" style="width:140px;height:70px;font-size:22px">quench</div>
+    </div>
+    <div class="tcap">HUD 收纳 = 深色 pill(圆图标 + 数字 + 内高光 + 加号),禁止文字墙</div>
+    <div class="trow" style="gap:12px">
+      <div class="pill"><span class="ico cal">1</span>第1周·第1天</div>
+      <div class="pill"><span class="ico">¥</span><b>20</b>金<span class="plus">+</span></div>
+      <div class="pill"><span class="ico ore">矿</span>×3</div>
+      <div class="pill warn"><span class="ico rent">租</span><b>29914</b></div>
+    </div>
+    <div class="tcap">进度条 = 内凹轨道 + 光泽填充 + 刻度 + 目标线</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="track" style="width:100%"><div class="fill" style="width:58%"></div><div class="ticks"></div><div class="goal" style="left:70%"></div></div>
+      <div class="track" style="width:100%"><div class="fill red" style="width:34%"></div></div>
+      <div class="track" style="width:100%"><div class="fill grn" style="width:76%"></div></div>
+    </div>
+    <div class="tcap">层级 132 / 64 / 44 / 34 / 26 / 20 —— 标题必须有独立 display 字重,正文最小 22px</div>
+    <div class="trow" style="align-items:flex-end;gap:16px">
+      <div class="d1" style="font-size:70px">淬火</div>
+      <div class="d2" style="font-size:52px">135</div>
+      <div class="h1" style="font-size:36px">标题</div>
+      <div class="h2" style="font-size:28px">二级</div>
+      <div class="bd" style="font-size:22px">正文</div>
+      <div class="cp" style="font-size:17px">说明</div>
+    </div>
+    <div class="tcap">场景构图 = 墙(上)+ 地平线亮带 + 地(下)+ 单一暖光源 + 接地阴影 + vignette + 颗粒</div>
+    <div class="trow" style="gap:14px">
+      <div class="stepper"><div class="s on"><span class="d"></span>买矿</div><div class="ln"></div><div class="s"><span class="d"></span>锻造</div><div class="ln"></div><div class="s"><span class="d"></span>上架</div><div class="ln"></div><div class="s"><span class="d"></span>开集</div></div>
+      <div class="sp"></div>
+      <span class="ember" style="position:static"></span>
+    </div>
+  </div>
+</div></div></div></div>
+
+<!-- 1 menu -->
+<div class="slot" data-s="menu"><h2>1 主菜单 menu(方向 A)</h2><div class="holder"><div class="frame"><div class="screen">
+  <div class="scene">
+    <div class="wall" style="height:700px"></div>
+    <div class="floor" style="height:580px"></div>
+    <div class="hz" style="top:700px"></div>
+    <div class="glow" style="width:820px;height:820px;right:-200px;top:300px"></div>
+    <div class="ph" style="left:250px;top:318px;width:220px;height:150px">待素材<br>后墙窗/招牌(逆光)</div>
+    <div class="ph" style="left:40px;top:300px;width:130px;height:120px">待素材<br>吊灯</div>
+    <div class="ph" style="right:40px;top:330px;width:130px;height:110px">待素材<br>工具架</div>
+    <div class="contact" style="left:36px;top:672px;width:270px;height:44px"></div>
+    <div class="contact" style="right:36px;top:672px;width:230px;height:40px"></div>
+    <div class="ph" style="left:36px;top:500px;width:260px;height:180px">待素材<br>铁砧 + 台座(侧视)</div>
+    <div class="ph" style="left:300px;top:560px;width:110px;height:120px">待素材<br>剑</div>
+    <div class="ph" style="right:36px;top:440px;width:200px;height:240px">待素材<br>亮火锻炉<br>(点火动画)</div>
+    <span class="ember" style="right:200px;top:400px"></span>
+    <span class="ember" style="right:250px;top:330px;width:4px;height:4px;opacity:.6"></span>
+    <span class="ember" style="right:160px;top:260px;width:5px;height:5px;opacity:.45"></span>
+    <div class="vig"></div><div class="grain"></div>
+  </div>
+  <div style="position:absolute;left:20px;top:20px;z-index:20"><div class="pill"><span class="ico cal">周</span>最长生存 <b>12</b> 周</div></div>
+  <div style="position:absolute;right:20px;top:20px;z-index:20"><div class="pill" style="padding:0 10px"><span class="ico ore">⚙</span></div></div>
+  <div style="position:absolute;left:0;right:0;top:96px;text-align:center;z-index:10">
+    <div class="d1">淬火</div>
+    <div class="cp" style="margin-top:16px;letter-spacing:3px">打铁 push-your-luck · 按住升温 · 见好就收</div>
+    <div style="width:420px;height:2px;margin:18px auto 0;background:linear-gradient(90deg,transparent,#8a5a12 30%,#ffc93c 50%,#8a5a12 70%,transparent)"></div>
+  </div>
+  <div style="position:absolute;left:24px;right:24px;bottom:100px;z-index:20;display:flex;flex-direction:column;gap:16px">
+    <div class="btn gold" style="height:150px;font-size:46px"><div class="stack">开 始 锻 造<span class="sub">6 天为一期 · 第 6 晚交房租</span></div></div>
+    <div style="display:flex;gap:14px">
+      <div class="btn" style="flex:1;height:92px;font-size:26px">名剑谱</div>
+      <div class="btn" style="flex:1;height:92px;font-size:26px">手艺图鉴</div>
+      <div class="btn steel" style="flex:1;height:92px;font-size:26px">设置</div>
+      <div class="btn ghost" style="width:120px;height:92px;font-size:24px">关于</div>
+    </div>
+  </div>
+  <div class="cp" style="position:absolute;right:24px;bottom:36px;z-index:20;font-size:18px">v0.6-dev · 方向 A</div>
+</div></div></div></div>
+
+<!-- 2 hub -->
+<div class="slot" data-s="hub"><h2>2 经营主页 hub(方向 A:场景优先 + 工位热点)</h2><div class="holder"><div class="frame"><div class="screen">
+  <div class="scene">
+    <div class="wall" style="height:770px"></div>
+    <div class="floor" style="height:510px"></div>
+    <div class="hz" style="top:770px"></div>
+    <div class="glow" style="width:700px;height:700px;right:-160px;top:330px"></div>
+    <div class="glow" style="width:520px;height:520px;left:-180px;top:420px;opacity:.5"></div>
+    <div class="contact" style="left:24px;top:742px;width:216px;height:38px"></div>
+    <div class="contact" style="left:252px;top:742px;width:206px;height:36px"></div>
+    <div class="contact" style="right:24px;top:742px;width:216px;height:38px"></div>
+    <div class="body ph" style="left:24px;top:420px;width:216px;height:340px;position:absolute">待素材<br>材料柜台<br>(木台+矿袋)</div>
+    <div class="body ph" style="left:252px;top:400px;width:206px;height:360px;position:absolute">待素材<br>货架<br>(陈列待售剑)</div>
+    <div class="body ph" style="right:24px;top:380px;width:216px;height:380px;position:absolute">待素材<br>锻炉<br>(亮火+光晕)</div>
+    <span class="ember" style="right:150px;top:440px"></span>
+    <span class="ember" style="right:210px;top:380px;width:4px;height:4px;opacity:.6"></span>
+    <div class="vig"></div><div class="grain"></div>
+  </div>
+  <div class="hud">
+    <div class="pill"><span class="ico cal">1</span>第1周·第1天</div><div class="sp"></div>
+    <div class="pill"><span class="ico">¥</span><b>20</b>金<span class="plus">+</span></div>
+    <div class="pill"><span class="ico ore">矿</span>×3</div>
+    <div class="pill warn"><span class="ico rent">租</span><b>200</b></div>
+  </div>
+  <div class="ribbon" style="width:430px;margin-top:118px;position:relative;z-index:9">铁 匠 铺 · 第 1 天</div>
+  <div class="cp" style="position:absolute;left:0;right:0;top:228px;text-align:center;z-index:9;letter-spacing:2px">奇数日锻造 · 偶数日开集 · 第 6 晚交租</div>
+  <div class="station" style="left:20px;top:262px;width:224px;height:300px">
+    <div class="plate"><div class="badge red">5折</div><div class="nm">材料柜台</div><div class="st">星纹钢/玄岩到货</div></div>
+  </div>
+  <div class="station" style="left:248px;top:262px;width:224px;height:300px">
+    <div class="plate"><div class="badge">0</div><div class="nm">货 架</div><div class="st">明日开集</div></div>
+  </div>
+  <div class="station" style="right:20px;top:262px;width:224px;height:300px">
+    <div class="plate"><div class="badge grn">∞</div><div class="nm">锻 炉</div><div class="st">今日不限炉数</div></div>
+  </div>
+  <div class="panel" style="position:absolute;left:20px;right:20px;top:800px;height:80px;z-index:9;display:flex;align-items:center;padding:0 20px">
+    <div class="stepper"><div class="s on"><span class="d"></span>买矿</div><div class="ln"></div><div class="s"><span class="d"></span>锻造</div><div class="ln"></div><div class="s"><span class="d"></span>上架</div><div class="ln"></div><div class="s"><span class="d"></span>开集</div></div>
+    <div class="sp"></div><div class="cp" style="font-size:19px">今日 0/2 步</div>
+  </div>
+  <div style="position:absolute;left:24px;right:24px;bottom:100px;z-index:20;display:flex;flex-direction:column;gap:16px">
+    <div class="btn gold" style="height:140px;font-size:44px"><div class="stack">开 始 锻 造<span class="sub">柜台买矿 → 锻炉选料开锤 → 上架</span></div></div>
+    <div style="display:flex;gap:14px">
+      <div class="btn ghost" style="flex:1;height:88px;font-size:26px">今日收工</div>
+      <div class="btn steel" style="flex:1;height:88px;font-size:26px">名剑谱</div>
+      <div class="btn steel" style="flex:1;height:88px;font-size:26px">图鉴</div>
+    </div>
+  </div>
+</div></div></div></div>
+
+<!-- 3 forge -->
+<div class="slot" data-s="forge"><h2>3 锻造 forge(方向 A)</h2><div class="holder"><div class="frame"><div class="screen">
+  <div class="scene">
+    <div class="wall" style="height:800px"></div>
+    <div class="floor" style="height:480px"></div>
+    <div class="hz" style="top:800px"></div>
+    <div class="glow" style="width:900px;height:900px;right:-220px;top:320px"></div>
+    <div class="contact" style="left:150px;top:762px;width:300px;height:44px"></div>
+    <div class="contact" style="right:24px;top:770px;width:220px;height:40px"></div>
+    <div class="ph" style="left:150px;top:620px;width:300px;height:140px">待素材:铁砧(含热铁态)</div>
+    <div class="ph" style="left:50%;transform:translateX(-50%);top:470px;width:130px;height:140px">剑<br>4 阶段</div>
+    <div class="ph" style="right:24px;top:520px;width:200px;height:240px">待素材<br>亮火锻炉</div>
+    <span class="ember" style="left:44%;top:470px"></span>
+    <span class="ember" style="left:57%;top:420px;width:4px;height:4px;opacity:.6"></span>
+    <span class="ember" style="left:38%;top:380px;width:5px;height:5px;opacity:.45"></span>
+    <div class="vig"></div><div class="grain"></div>
+  </div>
+  <div class="hud">
+    <div class="pill"><span class="ico cal">1</span>第1周·第1天</div><div class="sp"></div>
+    <div class="pill"><span class="ico">¥</span><b>20</b>金</div>
+    <div class="pill"><span class="ico ore">矿</span>×1</div>
+    <div class="btn gold" style="width:58px;height:58px;border-radius:14px;font-size:24px;padding:0">⌂</div>
+  </div>
+  <div class="panel" style="position:absolute;left:20px;right:20px;top:112px;height:106px;z-index:18;padding:12px 18px 14px">
+    <div style="display:flex;align-items:center;gap:10px"><div class="bd" style="font-size:23px">本单卖剑</div><div class="sp"></div><div class="gold" style="font-size:28px">135 <span class="muted" style="font-size:21px">/ 60 可过关</span></div></div>
+    <div class="track" style="margin-top:8px;height:26px"><div class="fill grn" style="width:100%"></div><div class="goal" style="left:44%"></div></div>
+  </div>
+  <div style="position:absolute;left:0;right:0;top:242px;text-align:center;z-index:16">
+    <div class="d2" style="font-size:112px">135</div>
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:12px">
+      <div class="chip">每锤约 +20</div><div class="chip">淬火 良品 ×1.0</div>
+    </div>
+  </div>
+  <div class="panel" style="position:absolute;left:20px;right:20px;top:820px;height:186px;z-index:18;padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:center;gap:14px"><div class="cp" style="width:88px;text-align:left">温度</div><div class="track" style="flex:1;height:28px"><div class="fill" style="width:68%"></div><div class="ticks"></div></div><div class="gold" style="width:88px;text-align:right;font-size:26px">68°</div></div>
+    <div style="display:flex;align-items:center;gap:14px"><div class="cp" style="width:88px;text-align:left">崩裂</div><div class="track" style="flex:1;height:28px"><div class="fill red" style="width:16%"></div></div><div class="danger" style="width:88px;text-align:right;font-size:26px">16%</div></div>
+    <div style="display:flex;align-items:center;gap:14px"><div class="cp" style="width:88px;text-align:left">定型</div>
+      <div style="flex:1;display:flex;gap:3px;height:26px">
+        <div style="flex:38;background:linear-gradient(180deg,#c8d0d8,#6b7480);border:2px solid #040201;box-shadow:inset 0 2px 0 rgba(255,255,255,.45)"></div>
+        <div style="flex:26;background:linear-gradient(180deg,#b8f0a0,#2e7d32);border:2px solid #040201;box-shadow:inset 0 2px 0 rgba(255,255,255,.4)"></div>
+        <div style="flex:23;background:linear-gradient(180deg,#e0b0ff,#7a3fa8);border:2px solid #040201;box-shadow:inset 0 2px 0 rgba(255,255,255,.4)"></div>
+        <div style="flex:13;background:linear-gradient(180deg,#ffd06a,#c8811a);border:2px solid #040201;box-shadow:inset 0 2px 0 rgba(255,255,255,.5)"></div>
+      </div>
+      <div class="gold" style="width:88px;text-align:right;font-size:24px">神兵13%</div>
+    </div>
+  </div>
+  <div style="position:absolute;left:24px;right:24px;bottom:96px;z-index:20;display:flex;gap:16px">
+    <div class="btn quench" style="width:200px;height:168px;font-size:32px"><div class="stack">淬 火<span class="sub" style="font-size:19px">定品质 收手</span></div></div>
+    <div class="btn blood" style="flex:1;height:168px;font-size:46px"><div class="stack">打 铁<span class="sub" style="font-size:21px">按住连锤 · 松手即停</span></div></div>
+  </div>
+</div></div></div></div>
+
+<!-- 4 matshop -->
+<div class="slot" data-s="matshop"><h2>4 材料行 matshop(方向 A:验证语言能铺满全 14 屏)</h2><div class="holder"><div class="frame"><div class="screen">
+  <div class="scene">
+    <div class="wall" style="height:860px"></div>
+    <div class="floor" style="height:420px"></div>
+    <div class="hz" style="top:860px"></div>
+    <div class="glow" style="width:640px;height:640px;left:-160px;top:480px;opacity:.6"></div>
+    <div class="contact" style="left:50%;transform:translateX(-50%);top:838px;width:560px;height:40px"></div>
+    <div class="ph" style="left:80px;top:740px;width:560px;height:104px">待素材:柜台台面 + 矿石袋 + 钱匣(侧视,接地阴影)</div>
+    <div class="vig"></div><div class="grain"></div>
+  </div>
+  <div class="hud">
+    <div class="pill"><span class="ico cal">1</span>第1周·第1天</div><div class="sp"></div>
+    <div class="pill"><span class="ico">¥</span><b>20</b>金</div>
+    <div class="pill"><span class="ico ore">矿</span>×3</div>
+    <div class="btn gold" style="width:58px;height:58px;border-radius:14px;font-size:24px;padding:0">⌂</div>
+  </div>
+  <div class="ribbon" style="width:380px;margin-top:112px;position:relative;z-index:9">材 料 柜 台</div>
+  <div style="position:absolute;left:20px;right:20px;top:226px;z-index:18;display:flex;flex-direction:column;gap:12px">
+    <div class="panel" style="padding:12px 16px;display:flex;align-items:center;gap:14px;height:112px">
+      <div class="badge red">5折</div>
+      <div style="width:66px;height:66px;border-radius:10px;border:2px solid #050302;background:linear-gradient(160deg,#c8b0ff,#5a3fa8);box-shadow:inset 0 2px 0 rgba(255,255,255,.45),0 3px 6px rgba(0,0,0,.5);flex:none"></div>
+      <div style="flex:1"><div style="font-size:27px">星纹钢</div><div class="cp" style="font-size:18px">限量 2 · 精品率高</div></div>
+      <div class="gold" style="font-size:28px;width:88px;text-align:right">12 金</div><div class="btn gold" style="width:92px;height:62px;font-size:24px">买</div>
+    </div>
+    <div class="panel" style="padding:12px 16px;display:flex;align-items:center;gap:14px;height:112px">
+      <div style="width:66px;height:66px;border-radius:10px;border:2px solid #050302;background:linear-gradient(160deg,#aab4be,#3d454d);box-shadow:inset 0 2px 0 rgba(255,255,255,.3),0 3px 6px rgba(0,0,0,.5);flex:none"></div>
+      <div style="flex:1"><div style="font-size:27px">玄岩</div><div class="cp" style="font-size:18px">限量 3 · 崩裂风险低</div></div>
+      <div class="gold" style="font-size:28px;width:88px;text-align:right">9 金</div><div class="btn gold" style="width:92px;height:62px;font-size:24px">买</div>
+    </div>
+    <div class="panel" style="padding:12px 16px;display:flex;align-items:center;gap:14px;height:112px">
+      <div style="width:66px;height:66px;border-radius:10px;border:2px solid #050302;background:linear-gradient(160deg,#d8c0a0,#6a5238);box-shadow:inset 0 2px 0 rgba(255,255,255,.35),0 3px 6px rgba(0,0,0,.5);flex:none"></div>
+      <div style="flex:1"><div style="font-size:27px">废铁<span class="cp" style="font-size:18px"> 常驻</span></div><div class="cp" style="font-size:18px">不限 · 保底开工</div></div>
+      <div class="gold" style="font-size:28px;width:88px;text-align:right">1 金</div><div class="btn gold" style="width:92px;height:62px;font-size:24px">买</div>
+    </div>
+    <div class="panel" style="padding:12px 16px;display:flex;align-items:center;gap:14px;height:112px;opacity:.6">
+      <div style="width:66px;height:66px;border-radius:10px;border:2px solid #050302;background:linear-gradient(160deg,#9a9a9a,#3a3a3a);flex:none"></div>
+      <div style="flex:1"><div style="font-size:27px">铁矿</div><div class="cp" style="font-size:18px">今日售罄 · 明日刷新</div></div>
+      <div class="btn dis" style="width:92px;height:62px;font-size:22px">无货</div>
+    </div>
+  </div>
+  <div style="position:absolute;left:24px;right:24px;bottom:100px;z-index:20;display:flex;flex-direction:column;gap:14px">
+    <div class="panel" style="height:64px;padding:0 18px;display:flex;align-items:center;gap:12px"><div class="cp" style="font-size:20px">今日折扣位 2 个 · 卖完即止</div><div class="sp"></div><div class="gold" style="font-size:22px">已花 0 金</div></div>
+    <div style="display:flex;gap:14px">
+      <div class="btn gold" style="flex:2;height:126px;font-size:36px">去 锻 炉</div>
+      <div class="btn ghost" style="flex:1;height:126px;font-size:26px">回主页</div>
+    </div>
+  </div>
+</div></div></div></div>
+
+<!-- 5 hub 方向B -->
+<div class="slot" data-s="hubB"><h2>5 经营主页 hub(方向 B 招牌与账本:panel 优先 + 实物隐喻)</h2><div class="holder"><div class="frame"><div class="screen" style="background:linear-gradient(180deg,#2a1e12,#120c07 60%,#0a0605)">
+  <div style="position:absolute;inset:0;opacity:.45;background:repeating-linear-gradient(90deg,rgba(0,0,0,.35) 0 3px,transparent 3px 88px),repeating-linear-gradient(0deg,rgba(255,220,150,.05) 0 2px,transparent 2px 44px)"></div>
+  <div class="glow" style="left:-160px;top:-160px;width:640px;height:640px;opacity:.5"></div>
+  <div class="hud">
+    <div class="pill"><span class="ico cal">1</span>第1周·第1天</div><div class="sp"></div>
+    <div class="pill"><span class="ico">¥</span><b>20</b>金</div>
+    <div class="pill"><span class="ico ore">矿</span>×3</div>
+    <div class="pill warn"><span class="ico rent">租</span><b>200</b></div>
+  </div>
+  <div style="position:absolute;left:50%;transform:translateX(-50%);top:116px;width:460px;height:126px;z-index:20">
+    <div style="position:absolute;left:44px;top:0;width:8px;height:24px;background:#8b97a2;border:2px solid #050302;border-radius:3px"></div>
+    <div style="position:absolute;right:44px;top:0;width:8px;height:24px;background:#8b97a2;border:2px solid #050302;border-radius:3px"></div>
+    <div class="panel wood" style="position:absolute;left:0;right:0;top:20px;bottom:0;display:flex;align-items:center;justify-content:center;font-size:44px;letter-spacing:10px;color:#ffe9a8;text-shadow:0 3px 0 rgba(0,0,0,.7)">铁 匠 铺</div>
+  </div>
+  <div style="position:absolute;left:24px;right:24px;top:266px;height:636px;z-index:20;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:18px">
+    <div class="panel" style="padding:18px 20px;display:flex;flex-direction:column">
+      <div class="badge red">5折</div>
+      <div style="display:flex;align-items:center;gap:12px"><div class="h2" style="font-size:30px">材料柜台</div><div class="sp"></div><div class="cp" style="font-size:19px">›</div></div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin-top:14px"><div class="d2" style="font-size:56px">3</div><div class="cp">块矿在手</div></div>
+      <div class="cp" style="font-size:19px;margin-top:auto">今日到货:星纹钢 · 玄岩 · 废铁<span class="gold">1金</span></div>
+      <div class="chip dark" style="align-self:flex-start;margin-top:10px">进 柜 台</div>
+    </div>
+    <div class="panel" style="padding:18px 20px;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;gap:12px"><div class="h2" style="font-size:30px">锻 炉</div><div class="sp"></div><div class="cp" style="font-size:19px">›</div></div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin-top:14px"><div class="d2" style="font-size:56px">∞</div><div class="cp">今日炉数</div></div>
+      <div class="cp" style="font-size:19px;margin-top:auto">出炉自动上架货架</div>
+      <div class="chip dark" style="align-self:flex-start;margin-top:10px">开 锤</div>
+    </div>
+    <div class="panel" style="padding:18px 20px;display:flex;flex-direction:column">
+      <div class="badge">0</div>
+      <div style="display:flex;align-items:center;gap:12px"><div class="h2" style="font-size:30px">货 架</div><div class="sp"></div><div class="cp" style="font-size:19px">›</div></div>
+      <div style="display:flex;gap:6px;margin-top:14px">
+        <div style="width:52px;height:52px;border-radius:8px;border:2px solid #050302;background:linear-gradient(180deg,#3d2c14,#1a1106);box-shadow:inset 0 2px 4px rgba(0,0,0,.6)"></div>
+        <div style="width:52px;height:52px;border-radius:8px;border:2px solid #050302;background:linear-gradient(180deg,#3d2c14,#1a1106);box-shadow:inset 0 2px 4px rgba(0,0,0,.6)"></div>
+        <div style="width:52px;height:52px;border-radius:8px;border:2px solid #050302;background:linear-gradient(180deg,#3d2c14,#1a1106);box-shadow:inset 0 2px 4px rgba(0,0,0,.6)"></div>
+        <div class="cp" style="font-size:19px;align-self:center;margin-left:6px">0 / 10 待售</div>
+      </div>
+      <div class="cp" style="font-size:19px;margin-top:auto">明日开集 · 上架后成交</div>
+      <div class="chip dark" style="align-self:flex-start;margin-top:10px">去 上 架</div>
+    </div>
+    <div class="panel stone" style="padding:18px 20px;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;gap:12px"><div class="h2" style="font-size:30px">房 租</div><div class="sp"></div><div class="cp" style="font-size:19px">第6晚</div></div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin-top:14px"><div class="d2" style="font-size:56px;color:#ffc93c">200</div><div class="cp">金应交</div></div>
+      <div class="track" style="margin-top:12px;height:22px"><div class="fill ylw" style="width:10%"></div></div>
+      <div class="cp" style="font-size:19px;margin-top:auto">还差 180 金 · 欠租铺子倒</div>
+    </div>
+  </div>
+  <div style="position:absolute;left:24px;right:24px;bottom:100px;z-index:22;display:flex;flex-direction:column;gap:16px">
+    <div class="btn gold" style="height:136px;font-size:44px"><div class="stack">开 始 锻 造<span class="sub">柜台买矿 → 锻炉选料开锤 → 上架</span></div></div>
+    <div style="display:flex;gap:14px">
+      <div class="btn ghost" style="flex:1;height:86px;font-size:25px">今日收工</div>
+      <div class="btn steel" style="flex:1;height:86px;font-size:25px">名剑谱</div>
+      <div class="btn steel" style="flex:1;height:86px;font-size:25px">手艺图鉴</div>
+    </div>
+  </div>
+</div></div></div></div>
+
+<!-- 6 hub 方向C -->
+<div class="slot" data-s="hubC"><h2>6 经营主页 hub(方向 C 像素一体:UI 也做像素硬边,与场景同一语言)</h2><div class="holder"><div class="frame"><div class="screen pxgrid" style="background:#1b1409">
+  <div style="position:absolute;left:0;right:0;top:0;height:770px;background:repeating-linear-gradient(180deg,#4a3520 0 32px,#3d2b18 32px 64px)"></div>
+  <div style="position:absolute;left:0;right:0;top:770px;bottom:0;background:repeating-linear-gradient(180deg,#2e2113 0 32px,#241a0f 32px 64px)"></div>
+  <div style="position:absolute;left:0;right:0;top:764px;height:12px;background:#0d0805;box-shadow:0 -3px 0 #6b4d24"></div>
+  <div class="glow" style="right:-120px;top:400px;width:640px;height:640px;opacity:.8"></div>
+  <div style="position:absolute;left:24px;top:700px;width:200px;height:150px;border:3px dashed rgba(255,201,60,.4);display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(255,201,60,.66);text-align:center">待素材<br>柜台(32px 像素)</div>
+  <div style="position:absolute;left:250px;top:660px;width:200px;height:190px;border:3px dashed rgba(255,201,60,.4);display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(255,201,60,.66);text-align:center">待素材<br>货架</div>
+  <div style="position:absolute;right:24px;top:640px;width:200px;height:210px;border:3px dashed rgba(255,201,60,.4);display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(255,201,60,.66);text-align:center">待素材<br>锻炉动画</div>
+  <div style="position:absolute;left:20px;right:20px;top:20px;height:76px;display:flex;align-items:center;gap:10px;z-index:20">
+    <div class="pxl" style="height:56px;display:flex;align-items:center;padding:0 14px;font-size:23px;color:#f4e6c8">第1周·第1天</div>
+    <div class="sp"></div>
+    <div class="pxl" style="height:56px;display:flex;align-items:center;padding:0 14px;font-size:23px;color:#ffe9a8">金 20</div>
+    <div class="pxl" style="height:56px;display:flex;align-items:center;padding:0 14px;font-size:23px;color:#b8f0f0">矿 3</div>
+    <div class="pxl" style="height:56px;display:flex;align-items:center;padding:0 14px;font-size:23px;color:#ff9a7a">租 200</div>
+  </div>
+  <div style="position:absolute;left:0;right:0;top:112px;text-align:center;z-index:20">
+    <div class="pxl" style="display:inline-block;padding:14px 44px;font-size:38px;letter-spacing:8px;color:#ffc93c;text-shadow:0 3px 0 #0a0603">铁 匠 铺 · 第 1 天</div>
+  </div>
+  <div style="position:absolute;left:20px;top:216px;width:216px;z-index:20;display:flex;flex-direction:column;gap:6px">
+    <div class="pxl" style="padding:12px 14px"><div style="font-size:26px;color:#ffe9a8">材料柜台 <span style="font-size:19px;color:#ff9a7a">5折</span></div><div style="font-size:18px;color:#c8b090;margin-top:6px">背包矿 3 块</div></div>
+  </div>
+  <div style="position:absolute;left:252px;top:216px;width:216px;z-index:20">
+    <div class="pxl" style="padding:12px 14px"><div style="font-size:26px;color:#ffe9a8">货 架 0/10</div><div style="font-size:18px;color:#c8b090;margin-top:6px">明日开集</div></div>
+  </div>
+  <div style="position:absolute;right:20px;top:216px;width:216px;z-index:20">
+    <div class="pxl" style="padding:12px 14px"><div style="font-size:26px;color:#ffe9a8">锻 炉 ∞</div><div style="font-size:18px;color:#c8b090;margin-top:6px">今日不限炉数</div></div>
+  </div>
+  <div style="position:absolute;left:20px;right:20px;top:880px;height:72px;z-index:20">
+    <div class="pxl" style="height:66px;display:flex;align-items:center;padding:0 16px;font-size:21px;color:#c8b090">买矿 → 锻造 → 上架 → 开集 · 今日 0/2 步</div>
+  </div>
+  <div style="position:absolute;left:24px;right:24px;bottom:100px;z-index:22;display:flex;flex-direction:column;gap:14px">
+    <div class="pxb" style="height:136px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px">
+      <div style="font-size:42px;letter-spacing:6px;color:#fff8e6;text-shadow:0 3px 0 rgba(0,0,0,.6)">开 始 锻 造</div>
+      <div style="font-size:19px;color:rgba(59,37,6,.75)">柜台买矿 → 锻炉选料开锤 → 上架</div>
+    </div>
+    <div style="display:flex;gap:14px">
+      <div class="pxl" style="flex:1;height:84px;display:flex;align-items:center;justify-content:center;font-size:24px;color:#c8b090">今日收工</div>
+      <div class="pxb2" style="flex:1;height:84px;display:flex;align-items:center;justify-content:center;font-size:24px;color:#eaf2fa">名剑谱</div>
+      <div class="pxb2" style="flex:1;height:84px;display:flex;align-items:center;justify-content:center;font-size:24px;color:#eaf2fa">手艺图鉴</div>
+    </div>
+  </div>
+  <div class="cp" style="position:absolute;left:0;right:0;bottom:34px;text-align:center;z-index:23;font-size:18px;color:#8a7657">代价:中文像素字可读性差 → 正文仍用文楷,只有框/钮像素化;且亮边一多就退回"暗糊"</div>
+</div></div></div></div>
+
+<!-- 7 forgesel -->
+<div class="slot" data-s="forgesel"><h2>7 锻炉选料 forgesel(方向 A)</h2><div class="holder"><div class="frame"><div class="screen">
+  <div class="scene">
+    <div class="wall" style="height:820px"></div>
+    <div class="floor" style="height:460px"></div>
+    <div class="hz" style="top:820px"></div>
+    <div class="glow" style="width:820px;height:820px;right:-220px;top:300px"></div>
+    <div class="contact" style="right:20px;top:788px;width:230px;height:40px"></div>
+    <div class="ph" style="right:20px;top:540px;width:220px;height:250px">待素材<br>亮火锻炉<br>(点火 4 帧)</div>
+    <div class="vig"></div><div class="grain"></div>
+  </div>
+  <div class="hud">
+    <div class="pill"><span class="ico cal">1</span>第1周·第1天</div><div class="sp"></div>
+    <div class="pill"><span class="ico">¥</span><b>20</b>金</div>
+    <div class="pill"><span class="ico ore">矿</span>×4</div>
+    <div class="btn gold" style="width:58px;height:58px;font-size:24px;padding:0">⌂</div>
+  </div>
+  <div class="ribbon" style="width:400px;margin-top:112px;position:relative;z-index:9">锻 炉 · 选 料</div>
+  <div class="cp" style="position:absolute;left:0;right:0;top:222px;text-align:center;z-index:9">选一块今日炉料,点火开锤;出炉自动上架货架</div>
+  <div style="position:absolute;left:20px;top:262px;width:420px;z-index:18;display:flex;flex-direction:column;gap:12px">
+    <div class="panel molten" style="padding:12px 14px;display:flex;align-items:center;gap:12px;border-color:#ff8c1a">
+      <div style="width:60px;height:60px;border:2px solid #050302;background:linear-gradient(160deg,#c8b0ff,#5a3fa8);box-shadow:inset 0 2px 0 rgba(255,255,255,.45);flex:none"></div>
+      <div style="flex:1"><div style="font-size:26px;color:#ffe9a8">▶ 星纹钢 ×1</div><div class="cp" style="font-size:18px">传世提前至80°解锁,概率×2</div></div>
+      <div class="chip">已选</div>
+    </div>
+    <div class="panel" style="padding:12px 14px;display:flex;align-items:center;gap:12px">
+      <div style="width:60px;height:60px;border:2px solid #050302;background:linear-gradient(160deg,#aab4be,#3d454d);box-shadow:inset 0 2px 0 rgba(255,255,255,.3);flex:none"></div>
+      <div style="flex:1"><div style="font-size:26px">废铁 ×2</div><div class="cp" style="font-size:18px">便宜大碗,别指望出好货</div></div>
+    </div>
+    <div class="panel" style="padding:12px 14px;display:flex;align-items:center;gap:12px">
+      <div style="width:60px;height:60px;border:2px solid #050302;background:linear-gradient(160deg,#d8c0a0,#6a5238);box-shadow:inset 0 2px 0 rgba(255,255,255,.35);flex:none"></div>
+      <div style="flex:1"><div style="font-size:26px">普通铁矿 ×1</div><div class="cp" style="font-size:18px">不偏不倚,什么都能出</div></div>
+    </div>
+    <div class="panel" style="padding:12px 14px;display:flex;align-items:center;gap:12px;opacity:.5">
+      <div style="width:60px;height:60px;border:2px solid #050302;background:linear-gradient(160deg,#8a8a8a,#3a3a3a);flex:none"></div>
+      <div style="flex:1"><div style="font-size:26px">寒铁 ×0</div><div class="cp" style="font-size:18px">背包没有 · 去柜台进货</div></div>
+    </div>
+  </div>
+  <div style="position:absolute;left:24px;right:24px;bottom:100px;z-index:20">
+    <div class="btn blood" style="height:140px;font-size:42px"><div class="stack">点 火 开 锤<span class="sub">炉料:星纹钢 · 出炉自动上架</span></div></div>
+  </div>
+</div></div></div></div>
+
+<!-- 8 sold -->
+<div class="slot" data-s="sold"><h2>8 淬火定型 sold(方向 A)</h2><div class="holder"><div class="frame"><div class="screen">
+  <div class="scene">
+    <div class="wall" style="height:640px"></div>
+    <div class="floor" style="height:640px"></div>
+    <div class="hz" style="top:640px"></div>
+    <div class="glow" style="width:900px;height:900px;left:50%;transform:translateX(-50%);top:80px;opacity:.85"></div>
+    <div class="ph" style="left:50%;transform:translateX(-50%);top:370px;width:180px;height:250px">待素材<br>成品剑<br>(4 档各一张)</div>
+    <div class="contact" style="left:50%;transform:translateX(-50%);top:600px;width:360px;height:52px"></div>
+    <div class="vig"></div><div class="grain"></div>
+  </div>
+  <div class="cp" style="position:absolute;left:0;right:0;top:110px;text-align:center;z-index:12;letter-spacing:8px;font-size:26px;color:#ffe9a8">淬 火 定 型</div>
+  <div style="position:absolute;left:0;right:0;top:150px;text-align:center;z-index:12">
+    <div class="d2" style="font-size:150px">精品</div>
+  </div>
+  <div class="cp" style="position:absolute;left:0;right:0;top:320px;text-align:center;z-index:12;font-size:22px">火候 135 · 品质 135</div>
+  <div class="panel" style="position:absolute;left:20px;right:20px;top:660px;height:340px;z-index:18;padding:18px 22px">
+    <div style="display:flex;align-items:center;gap:12px"><div style="font-size:32px;color:#ffe9a8">「无铭长剑」</div><div class="sp"></div><div class="chip">长剑 · 良品</div></div>
+    <div style="display:flex;gap:8px;margin-top:16px"><div class="chip dark">锋利 卖价+20%</div><div class="chip dark">精美 卖价+10%</div></div>
+    <div style="display:flex;align-items:baseline;gap:10px;margin-top:22px"><div class="cp" style="font-size:22px">交货</div><div class="d2" style="font-size:60px">168</div><div class="gold" style="font-size:26px">金</div><div class="sp"></div><div class="cp" style="font-size:21px">本单 168 / 60 <span class="ok">可过关 ✓</span></div></div>
+    <div class="track" style="margin-top:14px;height:26px"><div class="fill grn" style="width:100%"></div><div class="goal" style="left:36%"></div></div>
+    <div class="cp" style="margin-top:14px;font-size:19px">上架后明日开集出售 · 未上架留到下次</div>
+  </div>
+  <div style="position:absolute;left:24px;right:24px;bottom:100px;z-index:20;display:flex;gap:16px">
+    <div class="btn ghost" style="width:200px;height:136px;font-size:26px">再锻一把</div>
+    <div class="btn gold" style="flex:1;height:136px;font-size:38px"><div class="stack">上 架 货 架<span class="sub">明日开集出售</span></div></div>
+  </div>
+</div></div></div></div>
+
+<!-- 9 prep -->
+<div class="slot" data-s="prep"><h2>9 上架准备 prep(方向 A)</h2><div class="holder"><div class="frame"><div class="screen">
+  <div class="scene">
+    <div class="wall" style="height:880px"></div>
+    <div class="floor" style="height:400px"></div>
+    <div class="hz" style="top:880px"></div>
+    <div class="glow" style="width:640px;height:640px;left:-140px;top:420px;opacity:.55"></div>
+    <div class="ph" style="left:80px;top:790px;width:560px;height:90px">待素材:货架台面 + 已上架剑陈列</div>
+    <div class="vig"></div><div class="grain"></div>
+  </div>
+  <div class="hud">
+    <div class="pill"><span class="ico cal">2</span>第1周·集市日</div><div class="sp"></div>
+    <div class="pill"><span class="ico">¥</span><b>20</b>金</div>
+    <div class="btn gold" style="width:58px;height:58px;font-size:24px;padding:0">⌂</div>
+  </div>
+  <div class="ribbon" style="width:420px;margin-top:112px;position:relative;z-index:9">集 市 日 · 上 架</div>
+  <div style="position:absolute;left:20px;right:20px;top:222px;z-index:9;display:flex;align-items:center;gap:10px;justify-content:center">
+    <div class="cp" style="font-size:22px">从货架挑最多 10 件上架 · 没上架的留着下次开集</div>
+  </div>
+  <div style="position:absolute;left:20px;right:20px;top:266px;z-index:18;display:flex;flex-direction:column;gap:10px">
+    <div class="panel molten" style="padding:12px 16px;display:flex;align-items:center;gap:14px;height:96px;border-color:#ff8c1a">
+      <div style="width:40px;height:40px;border:2px solid #050302;background:linear-gradient(180deg,#ffdf7a,#c8811a);display:flex;align-items:center;justify-content:center;font-size:24px;color:#3b2506;flex:none">✔</div>
+      <div style="width:8px;align-self:stretch;background:linear-gradient(180deg,#ffd06a,#c8811a);border:2px solid #040201"></div>
+      <div style="flex:1"><div style="font-size:26px">「霜纹长剑」· 精品</div><div class="cp" style="font-size:18px">基准 168 金 · 锋利</div></div>
+      <div class="gold" style="font-size:26px">168 金</div>
+    </div>
+    <div class="panel molten" style="padding:12px 16px;display:flex;align-items:center;gap:14px;height:96px;border-color:#ff8c1a">
+      <div style="width:40px;height:40px;border:2px solid #050302;background:linear-gradient(180deg,#ffdf7a,#c8811a);display:flex;align-items:center;justify-content:center;font-size:24px;color:#3b2506;flex:none">✔</div>
+      <div style="width:8px;align-self:stretch;background:linear-gradient(180deg,#b8f0a0,#2e7d32);border:2px solid #040201"></div>
+      <div style="flex:1"><div style="font-size:26px">「铁棍」· 良品</div><div class="cp" style="font-size:18px">基准 92 金</div></div>
+      <div class="gold" style="font-size:26px">92 金</div>
+    </div>
+    <div class="panel molten" style="padding:12px 16px;display:flex;align-items:center;gap:14px;height:96px;border-color:#ff8c1a">
+      <div style="width:40px;height:40px;border:2px solid #050302;background:linear-gradient(180deg,#ffdf7a,#c8811a);display:flex;align-items:center;justify-content:center;font-size:24px;color:#3b2506;flex:none">✔</div>
+      <div style="width:8px;align-self:stretch;background:linear-gradient(180deg,#c8d0d8,#6b7480);border:2px solid #040201"></div>
+      <div style="flex:1"><div style="font-size:26px">「无铭长剑」· 凡品</div><div class="cp" style="font-size:18px">基准 46 金</div></div>
+      <div class="gold" style="font-size:26px">46 金</div>
+    </div>
+    <div class="panel" style="padding:12px 16px;display:flex;align-items:center;gap:14px;height:96px">
+      <div style="width:40px;height:40px;border:2px solid #050302;background:linear-gradient(180deg,#3d2c14,#1a1106);flex:none"></div>
+      <div style="width:8px;align-self:stretch;background:linear-gradient(180deg,#e0b0ff,#7a3fa8);border:2px solid #040201"></div>
+      <div style="flex:1"><div style="font-size:26px">「柳叶刀」· 神兵</div><div class="cp" style="font-size:18px">基准 412 金 · 留着下次卖?</div></div>
+      <div class="muted" style="font-size:24px">未选</div>
+    </div>
+  </div>
+  <div style="position:absolute;left:24px;right:24px;bottom:100px;z-index:20">
+    <div class="btn hit" style="height:140px;font-size:40px;background:linear-gradient(180deg,#e8542f,#b93018 52%,#7d1c0a);--base:#3d0d04"><div class="stack">开 集 出 售<span class="sub">已选 3 / 10 件 · 预计 306 金</span></div></div>
+  </div>
+</div></div></div></div>
+
+<!-- 10 market -->
+<div class="slot" data-s="market"><h2>10 集市成交 market(方向 A:逐行揭示 + 事件分色)</h2><div class="holder"><div class="frame"><div class="screen">
+  <div class="scene">
+    <div class="wall" style="height:1280px;background:linear-gradient(180deg,#120c08,#2e2114 45%,#463320 100%)"></div>
+    <div class="glow" style="width:900px;height:900px;left:50%;transform:translateX(-50%);top:-200px;opacity:.7"></div>
+    <div class="ph" style="left:60px;top:800px;width:600px;height:180px">待素材:集市摊位 + 围观客人剪影</div>
+    <div class="vig"></div><div class="grain"></div>
+  </div>
+  <div class="ribbon" style="width:360px;margin-top:118px;position:relative;z-index:9">集 市 开 门</div>
+  <div class="cp" style="position:absolute;left:0;right:0;top:228px;text-align:center;z-index:9">客人们围上货架…… 上架 3 件,全部出手</div>
+  <div style="position:absolute;left:20px;right:20px;top:272px;z-index:18;display:flex;flex-direction:column;gap:12px">
+    <div class="panel molten" style="padding:14px 18px;display:flex;align-items:center;gap:14px;border-color:#8a5a12">
+      <div class="chip" style="background:linear-gradient(180deg,#e0b0ff,#7a3fa8);color:#fff3d0;flex:none">争抢</div>
+      <div style="flex:1"><div style="font-size:25px;color:#e0b0ff">两个客人抢了起来!</div><div class="cp" style="font-size:18px">「霜纹长剑」×1.8</div></div>
+      <div class="d2" style="font-size:44px">302<span style="font-size:22px" class="gold"> 金</span></div>
+    </div>
+    <div class="panel molten" style="padding:14px 18px;display:flex;align-items:center;gap:14px;border-color:#8a5a12">
+      <div class="chip" style="background:linear-gradient(180deg,#ffd06a,#c8811a);color:#3b2506;flex:none">溢价</div>
+      <div style="flex:1"><div style="font-size:25px;color:#ffd06a">有富商一眼相中,溢价买走</div><div class="cp" style="font-size:18px">「铁棍」×1.45</div></div>
+      <div class="d2" style="font-size:44px">133<span style="font-size:22px" class="gold"> 金</span></div>
+    </div>
+    <div class="panel" style="padding:14px 18px;display:flex;align-items:center;gap:14px">
+      <div class="chip dark" style="flex:none">普通</div>
+      <div style="flex:1"><div style="font-size:25px">街坊路过,普通成交</div><div class="cp" style="font-size:18px">「无铭长剑」×1.02</div></div>
+      <div class="d2" style="font-size:44px;color:#f4e6c8">47<span style="font-size:22px" class="muted"> 金</span></div>
+    </div>
+    <div class="panel" style="padding:14px 18px;display:flex;align-items:center;gap:14px;border-color:#7d1c0a">
+      <div class="chip" style="background:linear-gradient(180deg,#ffa090,#8d1f0d);color:#fff3d0;flex:none">砍价</div>
+      <div style="flex:1"><div style="font-size:25px;color:#ffa090">客人挑三拣四,压了压价</div><div class="cp" style="font-size:18px">「柴刀」×0.72</div></div>
+      <div class="d2" style="font-size:44px;color:#ff6b6b">33<span style="font-size:22px" class="muted"> 金</span></div>
+    </div>
+    <div class="panel stone" style="padding:14px 18px;display:flex;align-items:center;gap:14px">
+      <div style="font-size:26px">合 计</div><div class="sp"></div><div class="d2" style="font-size:56px">515<span style="font-size:24px" class="gold"> 金</span></div>
+    </div>
+  </div>
+  <div style="position:absolute;left:24px;right:24px;bottom:100px;z-index:20">
+    <div class="btn gold" style="height:140px;font-size:38px"><div class="stack">收 钱 · 今晚交房租<span class="sub">第 6 晚 · 应交 330 金</span></div></div>
+  </div>
+</div></div></div></div>
+
+<!-- 11 rent -->
+<div class="slot" data-s="rent"><h2>11 周结算 rent(方向 A:大考制,账目 + 倒计时条)</h2><div class="holder"><div class="frame"><div class="screen">
+  <div class="scene">
+    <div class="wall" style="height:1280px;background:linear-gradient(180deg,#0d0906,#241a11 50%,#3a2b1c 100%)"></div>
+    <div class="glow" style="width:700px;height:700px;left:-120px;top:-120px;opacity:.6"></div>
+    <div class="ph" style="left:60px;top:820px;width:600px;height:170px">待素材:房东剪影 / 门牌 / 收租匣</div>
+    <div class="vig"></div><div class="grain"></div>
+  </div>
+  <div class="cp" style="position:absolute;left:0;right:0;top:130px;text-align:center;z-index:12;letter-spacing:6px;font-size:24px">第 2 周结算 · 房租大考</div>
+  <div class="panel" style="position:absolute;left:20px;right:20px;top:186px;z-index:18;padding:20px 22px">
+    <div style="display:flex;align-items:center;gap:14px;padding-bottom:14px;border-bottom:2px solid rgba(138,90,18,.5)">
+      <div style="width:52px;height:52px;border-radius:50%;border:2px solid #050302;background:radial-gradient(circle at 35% 30%,#ffe08a,#c8811a 60%,#7a4a06);box-shadow:inset 0 1px 0 rgba(255,255,255,.5)"></div>
+      <div style="font-size:27px">本周售出入账</div><div class="sp"></div><div class="ok" style="font-size:34px">+ 760 金</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:2px solid rgba(138,90,18,.5)">
+      <div style="width:52px;height:52px;border-radius:50%;border:2px solid #050302;background:radial-gradient(circle at 35% 30%,#ffc0a8,#c8502a 60%,#6d1f0c)"></div>
+      <div style="font-size:27px">房租(第 2 周)</div><div class="sp"></div><div class="danger" style="font-size:34px">− 330 金</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;padding:14px 0 4px">
+      <div style="width:52px;height:52px;border:2px solid #050302;background:linear-gradient(180deg,#4a4640,#1d1a16)"></div>
+      <div style="font-size:27px">交租后余额</div><div class="sp"></div><div class="d2" style="font-size:40px">430<span style="font-size:22px" class="gold"> 金</span></div>
+    </div>
+  </div>
+  <div class="panel stone" style="position:absolute;left:20px;right:20px;top:640px;height:150px;z-index:18;padding:16px 20px">
+    <div style="display:flex;align-items:center;gap:10px"><div style="font-size:23px">下周房租</div><div class="sp"></div><div class="gold" style="font-size:26px">545 金 <span class="cp" style="font-size:19px">(×1.65 递增)</span></div></div>
+    <div class="track" style="margin-top:14px;height:30px"><div class="fill ylw" style="width:79%"></div><div class="ticks"></div></div>
+    <div class="cp" style="margin-top:10px;font-size:19px">余额 430 / 下周应交 545 —— 还差 115 金</div>
+  </div>
+  <div style="position:absolute;left:24px;right:24px;bottom:100px;z-index:20">
+    <div class="btn gold" style="height:140px;font-size:38px"><div class="stack">交 房 租 · 开 新 的 一 周<span class="sub">欠租 = 铺子倒</span></div></div>
+  </div>
+</div></div></div></div>
+
+<!-- 12 fail -->
+<div class="slot" data-s="fail"><h2>12 倒闭 fail(方向 A)</h2><div class="holder"><div class="frame"><div class="screen">
+  <div class="scene">
+    <div class="wall" style="height:1280px;background:linear-gradient(180deg,#0a0605,#1d1310 50%,#2a1a14 100%)"></div>
+    <div class="glow" style="width:700px;height:700px;left:50%;transform:translateX(-50%);top:200px;opacity:.35;background:radial-gradient(circle,rgba(200,60,30,.4),transparent 70%)"></div>
+    <div class="ph" style="left:50%;transform:translateX(-50%);top:770px;width:420px;height:150px">待素材:熄火的炉子 / 塌下的铺面</div>
+    <div class="vig" style="box-shadow:inset 0 0 200px 90px rgba(0,0,0,.82)"></div><div class="grain"></div>
+  </div>
+  <div style="position:absolute;left:0;right:0;top:120px;text-align:center;z-index:12">
+    <div style="font-family:'STXingkai','KaiTi',serif;font-size:76px;color:#ff6b6b;letter-spacing:8px;filter:drop-shadow(0 3px 0 #2a0805) drop-shadow(0 0 20px rgba(200,40,20,.5))">房租交不起了</div>
+    <div class="cp" style="margin-top:10px;letter-spacing:4px;font-size:24px">铺 子 倒 了</div>
+  </div>
+  <div class="panel" style="position:absolute;left:20px;right:20px;top:330px;height:200px;z-index:18;padding:18px 22px;display:flex;flex-direction:column;justify-content:center;gap:14px">
+    <div style="display:flex;align-items:baseline;gap:10px"><div style="font-size:26px">撑到了</div><div class="d2" style="font-size:72px">11</div><div style="font-size:26px">周</div><div class="sp"></div><div class="cp" style="font-size:21px">最长纪录 12 周</div></div>
+    <div class="track" style="height:24px"><div class="fill red" style="width:92%"></div><div class="goal" style="left:100%"></div></div>
+    <div class="cp" style="font-size:21px">就差 <span class="danger">1840 金</span> 交租……</div>
+  </div>
+  <div class="panel wood" style="position:absolute;left:20px;right:20px;top:560px;height:180px;z-index:18;padding:16px 20px">
+    <div class="cp" style="font-size:20px;letter-spacing:2px">本局最得意</div>
+    <div style="display:flex;align-items:center;gap:14px;margin-top:12px">
+      <div class="ph" style="position:static;width:88px;height:88px;flex:none">待素材<br>剑</div>
+      <div style="flex:1"><div style="font-size:30px;color:#ffe9a8">「霜纹长剑」</div><div class="cp" style="font-size:19px">精品 · 锋利 · 精美 · 基准价 168 金</div></div>
+      <div class="d2" style="font-size:44px">168<span style="font-size:20px" class="gold"> 金</span></div>
+    </div>
+  </div>
+  <div style="position:absolute;left:24px;right:24px;bottom:100px;z-index:20;display:flex;flex-direction:column;gap:16px">
+    <div class="btn blood" style="height:140px;font-size:42px"><div class="stack">重 开 一 炉<span class="sub">第 1 天 · 20 金 · 房租 200</span></div></div>
+    <div class="btn ghost" style="height:88px;font-size:26px">回 主 页</div>
+  </div>
+</div></div></div></div>
+
+<!-- 13 swordcodex -->
+<div class="slot" data-s="swordcodex"><h2>13 名剑谱 swordcodex(方向 A:收集格)</h2><div class="holder"><div class="frame"><div class="screen">
+  <div class="scene">
+    <div class="wall" style="height:1280px;background:linear-gradient(180deg,#0d0906,#241a11 40%,#1a1109 100%)"></div>
+    <div class="vig"></div><div class="grain"></div>
+  </div>
+  <div style="position:absolute;left:20px;top:20px;z-index:22;display:flex;align-items:center;gap:12px">
+    <div class="btn gold" style="width:64px;height:58px;font-size:26px;padding:0">‹</div>
+    <div class="pill"><span class="ico cal">谱</span>名剑谱</div>
+  </div>
+  <div style="position:absolute;right:20px;top:20px;z-index:22"><div class="pill"><span class="ico">14</span>已定出 / 24</div></div>
+  <div class="cp" style="position:absolute;left:0;right:0;top:104px;text-align:center;z-index:9;font-size:21px">器型 × 定型档 · 定出过的兵器入谱</div>
+  <div style="position:absolute;left:20px;right:20px;top:140px;z-index:18;display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+    <div class="panel molten" style="height:150px;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border-color:#8a5a12">
+      <div class="ph" style="position:static;width:64px;height:64px">剑图</div><div style="font-size:19px;color:#ffe9a8">长剑·凡品</div><div class="cp" style="font-size:16px">定出 3 把</div>
+    </div>
+    <div class="panel molten" style="height:150px;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border-color:#2e7d32">
+      <div class="ph" style="position:static;width:64px;height:64px">剑图</div><div style="font-size:19px;color:#b8f0a0">长剑·良品</div><div class="cp" style="font-size:16px">定出 5 把</div>
+    </div>
+    <div class="panel molten" style="height:150px;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border-color:#c8811a">
+      <div class="ph" style="position:static;width:64px;height:64px">剑图</div><div style="font-size:19px;color:#ffd06a">长剑·精品</div><div class="cp" style="font-size:16px">定出 1 把</div>
+    </div>
+    <div class="panel" style="height:150px;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;opacity:.45">
+      <div style="width:64px;height:64px;border:2px dashed rgba(171,148,116,.5);display:flex;align-items:center;justify-content:center;font-size:30px;color:#6a5238">?</div><div style="font-size:19px;color:#6a5238">？？？</div><div class="cp" style="font-size:16px">尚未定出</div>
+    </div>
+    <div class="panel molten" style="height:150px;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border-color:#7a3fa8">
+      <div class="ph" style="position:static;width:64px;height:64px">刀图</div><div style="font-size:19px;color:#e0b0ff">柳叶刀·神兵</div><div class="cp" style="font-size:16px">定出 1 把</div>
+    </div>
+    <div class="panel" style="height:150px;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;opacity:.45"><div style="width:64px;height:64px;border:2px dashed rgba(171,148,116,.5);display:flex;align-items:center;justify-content:center;font-size:30px;color:#6a5238">?</div><div style="font-size:19px;color:#6a5238">？？？</div><div class="cp" style="font-size:16px">尚未定出</div></div>
+    <div class="panel" style="height:150px;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;opacity:.45"><div style="width:64px;height:64px;border:2px dashed rgba(171,148,116,.5);display:flex;align-items:center;justify-content:center;font-size:30px;color:#6a5238">?</div><div style="font-size:19px;color:#6a5238">？？？</div><div class="cp" style="font-size:16px">尚未定出</div></div>
+    <div class="panel" style="height:150px;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;opacity:.45"><div style="width:64px;height:64px;border:2px dashed rgba(171,148,116,.5);display:flex;align-items:center;justify-content:center;font-size:30px;color:#6a5238">?</div><div style="font-size:19px;color:#6a5238">？？？</div><div class="cp" style="font-size:16px">尚未定出</div></div>
+  </div>
+  <div class="cp" style="position:absolute;left:0;right:0;top:470px;text-align:center;z-index:18;font-size:19px">… 共 6 器型 × 4 档 = 24 格,滚动浏览 …</div>
+  <div class="panel stone" style="position:absolute;left:20px;right:20px;top:510px;height:200px;z-index:18;padding:16px 20px">
+    <div style="display:flex;align-items:center;gap:10px"><div style="font-size:25px">特殊品质见闻</div><div class="sp"></div><div class="gold" style="font-size:26px">3 / 12</div></div>
+    <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><div class="chip">锋利</div><div class="chip">精美</div><div class="chip">沉重</div><div class="chip dark">？？？</div><div class="chip dark">？？？</div></div>
+  </div>
+  <div class="ph" style="position:absolute;left:60px;top:760px;width:600px;height:220px;z-index:6">待素材:名剑架 / 卷轴底纹(收集感的载体)</div>
+  <div style="position:absolute;left:24px;right:24px;bottom:100px;z-index:20">
+    <div class="btn ghost" style="height:96px;font-size:28px">回 主 页</div>
+  </div>
+</div></div></div></div>
+
+<!-- 14 codex -->
+<div class="slot" data-s="codex"><h2>14 手艺图鉴 codex(方向 A)</h2><div class="holder"><div class="frame"><div class="screen">
+  <div class="scene">
+    <div class="wall" style="height:1280px;background:linear-gradient(180deg,#0d0906,#2a1e13 45%,#1a1109 100%)"></div>
+    <div class="glow" style="width:600px;height:600px;right:-160px;top:200px;opacity:.45"></div>
+    <div class="vig"></div><div class="grain"></div>
+  </div>
+  <div style="position:absolute;left:20px;top:20px;z-index:22;display:flex;align-items:center;gap:12px">
+    <div class="btn gold" style="width:64px;height:58px;font-size:26px;padding:0">‹</div>
+    <div class="pill"><span class="ico cal">谱</span>手艺图鉴 · 8 门</div>
+  </div>
+  <div style="position:absolute;left:20px;right:20px;top:108px;z-index:18;display:flex;flex-direction:column;gap:12px">
+    <div class="panel molten" style="height:130px;padding:14px 18px;display:flex;align-items:center;gap:16px">
+      <div class="ph" style="position:static;width:64px;height:64px;flex:none">图标</div>
+      <div style="flex:1"><div style="font-size:28px;color:#ffe9a8">重锤</div><div class="cp" style="font-size:19px">每锤收益 +30%</div></div>
+      <div class="chip">40 锤点</div>
+    </div>
+    <div class="panel molten" style="height:130px;padding:14px 18px;display:flex;align-items:center;gap:16px">
+      <div class="ph" style="position:static;width:64px;height:64px;flex:none">图标</div>
+      <div style="flex:1"><div style="font-size:28px;color:#ffe9a8">风箱</div><div class="cp" style="font-size:19px">每锤升温 −30%</div></div>
+      <div class="chip">40 锤点</div>
+    </div>
+    <div class="panel" style="height:130px;padding:14px 18px;display:flex;align-items:center;gap:16px;border-color:#2e7d32">
+      <div class="ph" style="position:static;width:64px;height:64px;flex:none">图标</div>
+      <div style="flex:1"><div style="font-size:28px;color:#b8f0a0">寒铁心 <span class="cp" style="font-size:18px">已拥有 ×2</span></div><div class="cp" style="font-size:19px">崩裂率 −30%</div></div>
+      <div class="chip">50 锤点</div>
+    </div>
+    <div class="panel" style="height:130px;padding:14px 18px;display:flex;align-items:center;gap:16px;opacity:.5">
+      <div class="ph" style="position:static;width:64px;height:64px;flex:none">图标</div>
+      <div style="flex:1"><div style="font-size:28px">匠神附体</div><div class="cp" style="font-size:19px">每锤 15% 概率暴击 ×3 · 锤点不足</div></div>
+      <div class="chip dark">60 锤点</div>
+    </div>
+    <div class="panel" style="height:130px;padding:14px 18px;display:flex;align-items:center;gap:16px;opacity:.5">
+      <div class="ph" style="position:static;width:64px;height:64px;flex:none">图标</div>
+      <div style="flex:1"><div style="font-size:28px">老砧</div><div class="cp" style="font-size:19px">每把剑 1 次崩剑保护</div></div>
+      <div class="chip dark">50 锤点</div>
+    </div>
+  </div>
+  <div class="cp" style="position:absolute;left:0;right:0;top:830px;text-align:center;z-index:18;font-size:19px">… 白模期即全量手艺列表,解锁后按已遇高亮 …</div>
+  <div style="position:absolute;left:24px;right:24px;bottom:100px;z-index:20">
+    <div class="btn ghost" style="height:96px;font-size:28px">回 主 页</div>
+  </div>
+</div></div></div></div>
+
+<!-- 15 settings -->
+<div class="slot" data-s="settings"><h2>15 设置 settings(方向 A)</h2><div class="holder"><div class="frame"><div class="screen">
+  <div class="scene">
+    <div class="wall" style="height:1280px;background:linear-gradient(180deg,#0d0906,#241a11 50%,#150e08 100%)"></div>
+    <div class="vig"></div><div class="grain"></div>
+  </div>
+  <div style="position:absolute;left:20px;top:20px;z-index:22;display:flex;align-items:center;gap:12px">
+    <div class="btn gold" style="width:64px;height:58px;font-size:26px;padding:0">‹</div>
+    <div class="pill"><span class="ico cal">设</span>设 置</div>
+  </div>
+  <div style="position:absolute;left:20px;right:20px;top:120px;z-index:18;display:flex;flex-direction:column;gap:14px">
+    <div class="panel" style="height:120px;padding:0 20px;display:flex;align-items:center;gap:16px">
+      <div style="width:52px;height:52px;border:2px solid #050302;background:linear-gradient(180deg,#4a3a20,#1d1407);flex:none"></div>
+      <div style="flex:1"><div style="font-size:28px">音效</div><div class="cp" style="font-size:18px">锤击 / 淬火 / 铜板声</div></div>
+      <div style="width:112px;height:56px;border:3px solid var(--edge);background:linear-gradient(180deg,#e8ac2b,#b0760f);box-shadow:inset 0 2px 0 rgba(255,255,255,.4),0 3px 0 rgba(0,0,0,.5);position:relative">
+        <div style="position:absolute;right:4px;top:3px;width:42px;height:42px;background:radial-gradient(circle at 35% 30%,#fff3c4,#c8811a);border:2px solid #050302"></div>
+      </div>
+    </div>
+    <div class="panel" style="height:120px;padding:0 20px;display:flex;align-items:center;gap:16px">
+      <div style="width:52px;height:52px;border:2px solid #050302;background:linear-gradient(180deg,#4a3a20,#1d1407);flex:none"></div>
+      <div style="flex:1"><div style="font-size:28px">震动</div><div class="cp" style="font-size:18px">占位开关:移动端反馈接入后生效</div></div>
+      <div style="width:112px;height:56px;border:3px solid var(--edge);background:linear-gradient(180deg,#2e2313,#181008);box-shadow:inset 0 2px 4px rgba(0,0,0,.6);position:relative">
+        <div style="position:absolute;left:4px;top:3px;width:42px;height:42px;background:linear-gradient(180deg,#8b97a2,#3d454d);border:2px solid #050302"></div>
+      </div>
+    </div>
+    <div class="panel" style="height:150px;padding:0 20px;display:flex;align-items:center;gap:16px">
+      <div style="width:52px;height:52px;border:2px solid #050302;background:linear-gradient(180deg,#4a3a20,#1d1407);flex:none"></div>
+      <div style="flex:1"><div style="font-size:28px">保温模式</div><div class="cp" style="font-size:18px;line-height:1.5">温度不衰减(可及性兜底)<br>代价:淬火品质上限降至精品</div></div>
+      <div style="width:112px;height:56px;border:3px solid var(--edge);background:linear-gradient(180deg,#2e2313,#181008);box-shadow:inset 0 2px 4px rgba(0,0,0,.6);position:relative">
+        <div style="position:absolute;left:4px;top:3px;width:42px;height:42px;background:linear-gradient(180deg,#8b97a2,#3d454d);border:2px solid #050302"></div>
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute;left:24px;right:24px;bottom:100px;z-index:20;display:flex;gap:14px">
+    <div class="btn ghost" style="flex:1;height:110px;font-size:26px">清 档</div>
+    <div class="btn gold" style="flex:2;height:110px;font-size:30px">保 存 · 回 主 页</div>
+  </div>
+</div></div></div></div>
+
+<!-- 16 about -->
+<div class="slot" data-s="about"><h2>16 关于·署名 about(方向 A;含本轮新增的 OGA CC-BY 署名行)</h2><div class="holder"><div class="frame"><div class="screen">
+  <div class="scene">
+    <div class="wall" style="height:1280px;background:linear-gradient(180deg,#0d0906,#241a11 50%,#150e08 100%)"></div>
+    <div class="vig"></div><div class="grain"></div>
+  </div>
+  <div style="position:absolute;left:20px;top:20px;z-index:22;display:flex;align-items:center;gap:12px">
+    <div class="btn gold" style="width:64px;height:58px;font-size:26px;padding:0">‹</div>
+    <div class="pill"><span class="ico cal">关</span>关于 · 素材署名</div>
+  </div>
+  <div class="panel" style="position:absolute;left:20px;right:20px;top:110px;height:96px;z-index:18;padding:0 20px;display:flex;align-items:center;gap:16px">
+    <div style="font-family:'STXingkai','KaiTi',serif;font-size:44px;color:#ffc93c;letter-spacing:4px">淬火</div>
+    <div class="cp" style="font-size:20px">v0.6-dev · 打铁 push-your-luck<br>引擎 Godot 4.7.2 · 720×1280 竖屏</div>
+  </div>
+  <div style="position:absolute;left:20px;right:20px;top:222px;z-index:18;display:flex;flex-direction:column;gap:12px">
+    <div class="panel molten" style="padding:14px 18px">
+      <div class="gold" style="font-size:23px;letter-spacing:2px">开源素材署名(CC BY)</div>
+      <div class="cp" style="font-size:19px;line-height:1.7;margin-top:8px">
+        game-icons.net 图标 — Lorc / Delapouite / Skoll · CC BY 3.0<br>
+        [LPC] Blacksmith Workshop — bluecarrot16 · CC-BY 3.0+<br>
+        <span style="color:#ffe9a8">Medieval Tileset — Clay Vignette(OpenGameArt)· CC-BY 3.0 ← 本轮新增</span>
+      </div>
+    </div>
+    <div class="panel" style="padding:14px 18px">
+      <div class="gold" style="font-size:23px;letter-spacing:2px">特别致谢(CC0 / 免费授权)</div>
+      <div class="cp" style="font-size:19px;line-height:1.7;margin-top:8px">
+        Kenney UI Pack / 音频 — CC0<br>
+        剑:FREE Sword Progression Set — Quasarixx(Free Use)<br>
+        打击火花:Hit Effect — pimen · 特效:Free Pixel Effects Pack — CodeManu
+      </div>
+    </div>
+    <div class="panel" style="padding:14px 18px">
+      <div class="gold" style="font-size:23px;letter-spacing:2px">字体</div>
+      <div class="cp" style="font-size:19px;line-height:1.7;margin-top:8px">
+        霞鹜文楷 GB Screen — SIL OFL 1.1<br>
+        <span style="color:#ffe9a8">标题 display 字(站酷庆科黄油体 / 优设标题黑)— 授权核验 + 子集化后补</span>
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute;left:24px;right:24px;bottom:100px;z-index:20">
+    <div class="btn ghost" style="height:96px;font-size:28px">回 主 页</div>
+  </div>
+</div></div></div></div>
+
+<!-- R1 真背景带 + 像素前景 -->
+<div class="slot" data-s="menuR1"><h2>R1 真素材试验:锻炉背景带 + 像素前景件(测风格混用)</h2><div class="holder"><div class="frame"><div class="screen">
+  <div class="scene" style="background:#0a0705">
+    <div style="position:absolute;left:0;right:0;top:270px;height:620px;background:url('_real/TheForge_13.jpg') center 42%/cover no-repeat"></div>
+    <div style="position:absolute;left:0;right:0;top:270px;height:150px;background:linear-gradient(180deg,#0a0705,transparent)"></div>
+    <div style="position:absolute;left:0;right:0;top:740px;height:150px;background:linear-gradient(180deg,transparent,#0d0806)"></div>
+    <img class="px" src="godot/art/weapons/sword_overcharged.png" style="position:absolute;left:50%;transform:translateX(-50%) rotate(-18deg);top:470px;width:132px;image-rendering:pixelated;filter:drop-shadow(0 6px 10px rgba(0,0,0,.7))">
+    <div class="contact" style="left:50%;transform:translateX(-50%);top:700px;width:300px;height:44px"></div>
+    <img class="px" src="godot/art/scenery/anvil.png" style="position:absolute;left:50%;transform:translateX(-50%);top:630px;width:150px;image-rendering:pixelated">
+    <div class="vig"></div>
+  </div>
+  <div style="position:absolute;left:20px;top:20px;z-index:20"><div class="pill"><span class="ico cal">周</span>最长生存 <b>12</b> 周</div></div>
+  <div style="position:absolute;right:20px;top:20px;z-index:20"><div class="pill" style="padding:0 10px"><span class="ico ore">⚙</span></div></div>
+  <div style="position:absolute;left:0;right:0;top:82px;text-align:center;z-index:12">
+    <div class="d1">淬火</div>
+    <div class="cp" style="margin-top:14px;letter-spacing:3px">打铁 push-your-luck · 按住升温 · 见好就收</div>
+  </div>
+  <div style="position:absolute;left:24px;right:24px;bottom:100px;z-index:20;display:flex;flex-direction:column;gap:16px">
+    <div class="btn gold" style="height:150px;font-size:46px"><div class="stack">开 始 锻 造<span class="sub">6 天为一期 · 第 6 晚交房租</span></div></div>
+    <div style="display:flex;gap:14px">
+      <div class="btn" style="flex:1;height:92px;font-size:26px">名剑谱</div>
+      <div class="btn" style="flex:1;height:92px;font-size:26px">手艺图鉴</div>
+      <div class="btn steel" style="flex:1;height:92px;font-size:26px">设置</div>
+      <div class="btn ghost" style="width:120px;height:92px;font-size:24px">关于</div>
+    </div>
+  </div>
+</div></div></div></div>
+
+<!-- R2 全屏模糊压暗衬底 -->
+<div class="slot" data-s="menuR2"><h2>R2 真素材试验:全屏模糊压暗衬底 + UI 悬浮(层级靠阴影不靠边框)</h2><div class="holder"><div class="frame"><div class="screen">
+  <div class="scene" style="background:#0a0705">
+    <div style="position:absolute;left:-40px;right:-40px;top:-40px;bottom:-40px;background:url('_real/TheForge_5.jpg') center 30%/cover no-repeat;filter:blur(9px) brightness(.42) saturate(.82)"></div>
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,7,5,.9) 0%,rgba(10,7,5,.35) 30%,rgba(10,7,5,.55) 62%,rgba(10,7,5,.95) 100%)"></div>
+    <div class="vig" style="box-shadow:inset 0 0 200px 80px rgba(0,0,0,.8)"></div>
+  </div>
+  <div style="position:absolute;left:20px;top:20px;z-index:20"><div class="pill"><span class="ico cal">周</span>最长生存 <b>12</b> 周</div></div>
+  <div style="position:absolute;right:20px;top:20px;z-index:20"><div class="pill" style="padding:0 10px"><span class="ico ore">⚙</span></div></div>
+  <div style="position:absolute;left:0;right:0;top:110px;text-align:center;z-index:12">
+    <div class="d1">淬火</div>
+    <div class="cp" style="margin-top:16px;letter-spacing:3px">打铁 push-your-luck · 按住升温 · 见好就收</div>
+  </div>
+  <div class="panel" style="position:absolute;left:60px;right:60px;top:470px;height:250px;z-index:14;padding:18px 22px;display:flex;flex-direction:column;justify-content:center;gap:12px">
+    <div style="display:flex;align-items:center;gap:12px"><div class="h2" style="font-size:28px">今 日 炉 前</div><div class="sp"></div><div class="chip">第1周·第1天</div></div>
+    <div class="cp" style="font-size:21px;line-height:1.6">柜台买矿 → 锻炉选料开锤 → 上架<br>奇数日锻造 · 偶数日开集 · 第 6 晚交租</div>
+    <div style="display:flex;gap:10px"><div class="chip dark">金 20</div><div class="chip dark">矿 ×3</div><div class="chip dark">房租 200</div></div>
+  </div>
+  <div style="position:absolute;left:24px;right:24px;bottom:100px;z-index:20;display:flex;flex-direction:column;gap:16px">
+    <div class="btn gold" style="height:150px;font-size:46px"><div class="stack">开 始 锻 造<span class="sub">6 天为一期 · 第 6 晚交房租</span></div></div>
+    <div style="display:flex;gap:14px">
+      <div class="btn" style="flex:1;height:92px;font-size:26px">名剑谱</div>
+      <div class="btn" style="flex:1;height:92px;font-size:26px">手艺图鉴</div>
+      <div class="btn steel" style="flex:1;height:92px;font-size:26px">设置</div>
+      <div class="btn ghost" style="width:120px;height:92px;font-size:24px">关于</div>
+    </div>
+  </div>
+</div></div></div></div>
+
+<!-- R3 背景带纯氛围 -->
+<div class="slot" data-s="menuR3"><h2>R3 真素材试验:背景带纯氛围(不放像素件,背景即主视觉)</h2><div class="holder"><div class="frame"><div class="screen">
+  <div class="scene" style="background:#0a0705">
+    <div style="position:absolute;left:0;right:0;top:230px;height:660px;background:url('_real/TheForge_18.jpg') center 45%/cover no-repeat"></div>
+    <div style="position:absolute;left:0;right:0;top:230px;height:130px;background:linear-gradient(180deg,#0a0705,transparent)"></div>
+    <div style="position:absolute;left:0;right:0;top:760px;height:130px;background:linear-gradient(180deg,transparent,#0c0806)"></div>
+    <div class="vig"></div>
+  </div>
+  <div style="position:absolute;left:20px;top:20px;z-index:20"><div class="pill"><span class="ico cal">周</span>最长生存 <b>12</b> 周</div></div>
+  <div style="position:absolute;right:20px;top:20px;z-index:20"><div class="pill" style="padding:0 10px"><span class="ico ore">⚙</span></div></div>
+  <div style="position:absolute;left:0;right:0;top:78px;text-align:center;z-index:12">
+    <div class="d1" style="font-size:112px">淬火</div>
+    <div class="cp" style="margin-top:10px;letter-spacing:3px">打铁 push-your-luck · 按住升温 · 见好就收</div>
+  </div>
+  <div class="badge grn" style="position:absolute;left:50%;transform:translateX(-50%);top:856px;z-index:16;min-width:200px;height:52px;font-size:21px;border-radius:26px">炉火正旺 · 第 1 天</div>
+  <div style="position:absolute;left:24px;right:24px;bottom:100px;z-index:20;display:flex;flex-direction:column;gap:16px">
+    <div class="btn gold" style="height:150px;font-size:46px"><div class="stack">开 始 锻 造<span class="sub">6 天为一期 · 第 6 晚交房租</span></div></div>
+    <div style="display:flex;gap:14px">
+      <div class="btn" style="flex:1;height:92px;font-size:26px">名剑谱</div>
+      <div class="btn" style="flex:1;height:92px;font-size:26px">手艺图鉴</div>
+      <div class="btn steel" style="flex:1;height:92px;font-size:26px">设置</div>
+      <div class="btn ghost" style="width:120px;height:92px;font-size:24px">关于</div>
+    </div>
+  </div>
+</div></div></div></div>
+
+<!-- 定稿:主菜单 R1 打磨版 -->
+<div class="slot" data-s="menuFinal"><h2>★ 主菜单定稿(R1 打磨:背景带 + 像素前景,已校尺度与光向)</h2><div class="holder"><div class="frame"><div class="screen">
+  <div class="scene" style="background:#0a0705">
+    <div style="position:absolute;left:0;right:0;top:240px;height:680px;background:url('_real/TheForge_13.jpg') center 40%/cover no-repeat"></div>
+    <div style="position:absolute;left:0;right:0;top:240px;height:170px;background:linear-gradient(180deg,#0a0705,transparent)"></div>
+    <div style="position:absolute;left:0;right:0;top:770px;height:150px;background:linear-gradient(180deg,transparent,#0c0806)"></div>
+    <div class="contact" style="left:50%;transform:translateX(-50%);top:724px;width:330px;height:46px"></div>
+    <img class="px" src="godot/art/scenery/anvil.png" style="position:absolute;left:50%;transform:translateX(-50%);top:618px;width:200px;image-rendering:pixelated;filter:brightness(1.12) drop-shadow(-6px 0 10px rgba(255,150,40,.35))">
+    <img class="px" src="godot/art/weapons/sword_overcharged.png" style="position:absolute;left:50%;transform:translateX(-50%) rotate(-16deg);top:418px;width:158px;image-rendering:pixelated;filter:drop-shadow(0 8px 12px rgba(0,0,0,.75)) drop-shadow(0 0 14px rgba(255,160,50,.55))">
+    <span class="ember" style="left:46%;top:560px"></span>
+    <span class="ember" style="left:56%;top:500px;width:4px;height:4px;opacity:.65"></span>
+    <span class="ember" style="left:41%;top:450px;width:5px;height:5px;opacity:.5"></span>
+    <span class="ember" style="left:60%;top:600px;width:4px;height:4px;opacity:.6"></span>
+    <div class="vig"></div><div class="grain"></div>
+  </div>
+  <div style="position:absolute;left:20px;top:20px;z-index:20"><div class="pill"><span class="ico cal">周</span>最长生存 <b>12</b> 周</div></div>
+  <div style="position:absolute;right:20px;top:20px;z-index:20"><div class="pill" style="padding:0 10px"><span class="ico ore">⚙</span></div></div>
+  <div style="position:absolute;left:0;right:0;top:74px;text-align:center;z-index:12">
+    <div class="d1">淬火</div>
+    <div class="cp" style="margin-top:12px;letter-spacing:3px">打铁 push-your-luck · 按住升温 · 见好就收</div>
+    <div style="width:400px;height:2px;margin:16px auto 0;background:linear-gradient(90deg,transparent,#8a5a12 25%,#ffc93c 50%,#8a5a12 75%,transparent);box-shadow:0 0 12px rgba(255,140,26,.6)"></div>
+  </div>
+  <div class="badge" style="position:absolute;left:50%;transform:translateX(-50%);top:828px;z-index:16;min-width:210px;height:54px;font-size:21px;border-radius:27px">炉火正旺 · 第 1 天</div>
+  <div style="position:absolute;left:24px;right:24px;bottom:100px;z-index:20;display:flex;flex-direction:column;gap:16px">
+    <div class="btn gold" style="height:150px;font-size:46px"><div class="stack">开 始 锻 造<span class="sub">6 天为一期 · 第 6 晚交房租</span></div></div>
+    <div style="display:flex;gap:14px">
+      <div class="btn" style="flex:1;height:92px;font-size:26px">名剑谱</div>
+      <div class="btn" style="flex:1;height:92px;font-size:26px">手艺图鉴</div>
+      <div class="btn steel" style="flex:1;height:92px;font-size:26px">设置</div>
+      <div class="btn ghost" style="width:120px;height:92px;font-size:24px">关于</div>
+    </div>
+  </div>
+</div></div></div></div>
+
+<!-- 材料图标实图验证 -->
+<div class="slot" data-s="matsIcons"><h2>★ 材料专属图标实图(ponk《Anvil's RPG icons》CC BY 4.0,解旧账)</h2><div class="holder"><div class="frame"><div class="screen">
+  <div class="scene">
+    <div class="wall" style="height:860px"></div>
+    <div class="floor" style="height:420px"></div>
+    <div class="hz" style="top:860px"></div>
+    <div class="glow" style="width:640px;height:640px;left:-140px;top:420px;opacity:.55"></div>
+    <div class="vig"></div><div class="grain"></div>
+  </div>
+  <div class="hud">
+    <div class="pill"><span class="ico cal">1</span>第1周·第1天</div><div class="sp"></div>
+    <div class="pill"><span class="ico">¥</span><b>20</b>金</div>
+    <div class="pill"><span class="ico ore">矿</span>×3</div>
+    <div class="btn gold" style="width:58px;height:58px;font-size:24px;padding:0">⌂</div>
+  </div>
+  <div class="ribbon" style="width:400px;margin-top:112px;position:relative;z-index:9">全 部 炉 料</div>
+  <div style="position:absolute;left:20px;right:20px;top:236px;z-index:18;display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+    <div class="panel" style="height:150px;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><img class="px" src="_real/ic/326.png" style="width:56px;height:56px;image-rendering:pixelated"><div style="font-size:22px">废铁</div><div class="cp" style="font-size:17px">1 金 · 常驻</div></div>
+    <div class="panel" style="height:150px;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><img class="px" src="_real/ic/325.png" style="width:56px;height:56px;image-rendering:pixelated"><div style="font-size:22px">普通铁矿</div><div class="cp" style="font-size:17px">3 金</div></div>
+    <div class="panel" style="height:150px;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><img class="px" src="_real/ic/322.png" style="width:56px;height:56px;image-rendering:pixelated"><div style="font-size:22px">锡矿</div><div class="cp" style="font-size:17px">5 金 · 崩裂-3%</div></div>
+    <div class="panel" style="height:150px;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><img class="px" src="_real/ic/328.png" style="width:56px;height:56px;image-rendering:pixelated"><div style="font-size:22px">赤铜</div><div class="cp" style="font-size:17px">8 金 · 收益+10%</div></div>
+    <div class="panel" style="height:150px;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><img class="px" src="_real/ic/337.png" style="width:56px;height:56px;image-rendering:pixelated"><div style="font-size:22px">寒铁</div><div class="cp" style="font-size:17px">10 金 · 精工+4%</div></div>
+    <div class="panel" style="height:150px;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><img class="px" src="_real/ic/356.png" style="width:56px;height:56px;image-rendering:pixelated"><div style="font-size:22px">玄岩</div><div class="cp" style="font-size:17px">12 金 · 崩裂-10%</div></div>
+    <div class="panel" style="height:150px;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><img class="px" src="_real/ic/343.png" style="width:56px;height:56px;image-rendering:pixelated"><div style="font-size:22px">陨铁</div><div class="cp" style="font-size:17px">14 金 · 神兵×1.4</div></div>
+    <div class="panel" style="height:150px;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><img class="px" src="_real/ic/349.png" style="width:56px;height:56px;image-rendering:pixelated"><div style="font-size:22px">磁铁矿</div><div class="cp" style="font-size:17px">16 金 · 暂代形</div></div>
+    <div class="panel molten" style="height:150px;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border-color:#ff8c1a"><div class="badge red">5折</div><img class="px" src="_real/ic/340.png" style="width:56px;height:56px;image-rendering:pixelated"><div style="font-size:22px;color:#ffe9a8">星纹钢</div><div class="cp" style="font-size:17px">20 金 · 传世×2</div></div>
+  </div>
+  <div class="panel stone" style="position:absolute;left:20px;right:20px;top:740px;height:110px;z-index:18;padding:0 20px;display:flex;align-items:center;gap:14px">
+    <div class="cp" style="font-size:20px;line-height:1.6">图标语言:32×32 手绘 + 黑描边,与暖棕金 UI 同调<br>旧"材料图标复用"问题(玄岩=震颤大师)就此解决</div>
+  </div>
+  <div style="position:absolute;left:24px;right:24px;bottom:100px;z-index:20">
+    <div class="btn gold" style="height:130px;font-size:36px">回 材 料 柜 台</div>
+  </div>
+</div></div></div></div>
+
+<!-- LUX 主菜单 -->
+<div class="slot" data-s="menuLux"><h2>◆ 主菜单成品演示(真描金件 + 真背景 + 真图标)</h2><div class="holder"><div class="frame"><div class="screen">
+  <div class="scene" style="background:#0a0705">
+    <div style="position:absolute;left:0;right:0;top:236px;height:690px;background:url('_real/TheForge_13.jpg') center 40%/cover no-repeat"></div>
+    <div style="position:absolute;left:0;right:0;top:236px;height:180px;background:linear-gradient(180deg,#0a0705,transparent)"></div>
+    <div style="position:absolute;left:0;right:0;top:766px;height:160px;background:linear-gradient(180deg,transparent,#0c0806)"></div>
+    <div class="contact" style="left:50%;transform:translateX(-50%);top:722px;width:340px;height:48px"></div>
+    <img class="px" src="godot/art/scenery/anvil.png" style="position:absolute;left:50%;transform:translateX(-50%);top:614px;width:206px;image-rendering:pixelated;filter:brightness(1.14) drop-shadow(-7px 0 12px rgba(255,150,40,.4))">
+    <img class="px" src="godot/art/weapons/sword_overcharged.png" style="position:absolute;left:50%;transform:translateX(-50%) rotate(-16deg);top:410px;width:162px;image-rendering:pixelated;filter:drop-shadow(0 8px 12px rgba(0,0,0,.8)) drop-shadow(0 0 16px rgba(255,160,50,.6))">
+    <span class="ember" style="left:45%;top:556px"></span><span class="ember" style="left:57%;top:494px;width:4px;height:4px;opacity:.65"></span>
+    <span class="ember" style="left:40%;top:444px;width:5px;height:5px;opacity:.5"></span><span class="ember" style="left:61%;top:600px;width:4px;height:4px;opacity:.6"></span>
+    <div class="vig"></div><div class="grain"></div>
+  </div>
+  <div style="position:absolute;left:20px;top:20px;z-index:20">
+    <div class="luxpanel" style="height:58px;display:flex;align-items:center;gap:10px;padding:0 18px 0 12px">
+      <span class="cn c1"></span><span class="cn c2"></span><span class="cn c3"></span><span class="cn c4"></span>
+      <img class="luxicon" src="_real/ui/32px_pocketwatch.png" style="width:32px;height:32px">
+      <span style="font-size:24px">最长生存 <b style="color:#ffe9a8">12</b> 周</span>
+    </div>
+  </div>
+  <div style="position:absolute;right:20px;top:20px;z-index:20"><div class="pill" style="padding:0 10px"><span class="ico ore">⚙</span></div></div>
+  <div style="position:absolute;left:0;right:0;top:70px;text-align:center;z-index:12">
+    <div class="d1">淬火</div>
+    <div style="width:420px;height:2px;margin:14px auto 10px;background:linear-gradient(90deg,transparent,#8a5a12 25%,#ffc93c 50%,#8a5a12 75%,transparent);box-shadow:0 0 12px rgba(255,140,26,.6)"></div>
+    <div class="cp" style="letter-spacing:3px;font-size:21px">打铁 push-your-luck · 按住升温 · 见好就收</div>
+  </div>
+  <div class="luxpanel" style="position:absolute;left:50%;transform:translateX(-50%);top:828px;width:400px;height:74px;z-index:16;display:flex;align-items:center;gap:14px;padding:0 22px">
+    <span class="cn c1"></span><span class="cn c2"></span><span class="cn c3"></span><span class="cn c4"></span>
+    <div style="font-size:22px;color:#ffe9a8;white-space:nowrap">炉火</div>
+    <div class="luxbar" style="flex:1"><i style="width:72%"></i></div>
+    <div style="font-size:22px;color:#ffc93c">第 1 天</div>
+  </div>
+  <div style="position:absolute;left:24px;right:24px;bottom:100px;z-index:20;display:flex;flex-direction:column;gap:16px">
+    <div class="btn gold" style="height:150px;font-size:46px"><div class="stack">开 始 锻 造<span class="sub">6 天为一期 · 第 6 晚交房租</span></div></div>
+    <div style="display:flex;gap:14px">
+      <div class="btn" style="flex:1;height:92px;font-size:26px">名剑谱</div>
+      <div class="btn" style="flex:1;height:92px;font-size:26px">手艺图鉴</div>
+      <div class="btn steel" style="flex:1;height:92px;font-size:26px">设置</div>
+      <div class="btn ghost" style="width:120px;height:92px;font-size:24px">关于</div>
+    </div>
+  </div>
+</div></div></div></div>
+
+<!-- LUX 经营主页 -->
+<div class="slot" data-s="hubLux"><h2>◆ 经营主页成品演示(整张锻炉手绘当衬底 + 真描金工位面板)</h2><div class="holder"><div class="frame"><div class="screen">
+  <div class="scene" style="background:#0a0705">
+    <div style="position:absolute;left:-30px;right:-30px;top:-60px;bottom:-60px;background:url('_real/TheForge_18.jpg') center 45%/cover no-repeat;filter:brightness(.72) saturate(1.02)"></div>
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,7,5,.88) 0%,rgba(10,7,5,.18) 24%,rgba(10,7,5,.22) 56%,rgba(10,7,5,.9) 100%)"></div>
+    <div class="vig"></div><div class="grain"></div>
+  </div>
+  <div class="hud">
+    <div class="pill"><span class="ico cal">1</span>第1周·第1天</div><div class="sp"></div>
+    <div class="pill"><span class="ico">¥</span><b>20</b>金<span class="plus">+</span></div>
+    <div class="pill"><img class="luxicon" src="_real/ic/325.png" style="width:34px;height:34px">×3</div>
+    <div class="pill warn"><span class="ico rent">租</span><b>200</b></div>
+  </div>
+  <div class="luxframe" style="position:absolute;left:50%;transform:translateX(-50%);top:108px;width:440px;height:104px;z-index:12;display:flex;align-items:center;justify-content:center">
+    <div style="font-size:40px;color:#ffe9a8;letter-spacing:6px;text-shadow:0 2px 0 rgba(0,0,0,.8),0 0 18px rgba(255,140,26,.5);padding-bottom:10px">铁 匠 铺</div>
+  </div>
+  <div style="position:absolute;left:22px;right:22px;top:252px;z-index:14;display:flex;flex-direction:column;gap:22px">
+    <div class="luxpanel" style="height:108px;display:flex;align-items:center;gap:16px;padding:0 26px">
+      <span class="cn c1"></span><span class="cn c2"></span><span class="cn c3"></span><span class="cn c4"></span>
+      <div class="badge red">5折</div>
+      <img class="luxicon" src="_real/ic/340.png" style="width:60px;height:60px;flex:none">
+      <div style="flex:1"><div style="font-size:29px;color:#ffe9a8;letter-spacing:2px">材料柜台</div><div class="cp" style="font-size:19px;margin-top:4px">星纹钢 · 玄岩 · 废铁<span class="gold">1 金</span></div></div>
+      <div style="text-align:right;flex:none;margin-right:34px;white-space:nowrap"><div class="cp" style="font-size:18px">背包矿</div><div class="d2" style="font-size:38px">3<span style="font-size:18px" class="muted"> 块</span></div></div>
+      <div style="font-size:30px;color:#8a5a12;flex:none">›</div>
+    </div>
+    <div class="luxpanel" style="height:108px;display:flex;align-items:center;gap:16px;padding:0 26px">
+      <span class="cn c1"></span><span class="cn c2"></span><span class="cn c3"></span><span class="cn c4"></span>
+      <div style="width:60px;flex:none;display:flex;align-items:center;justify-content:center"><img class="luxicon" src="godot/art/scenery/forge_lit.png" style="width:56px;image-rendering:pixelated"></div>
+      <div style="flex:1"><div style="font-size:29px;color:#ffe9a8;letter-spacing:2px">锻 炉</div><div class="cp" style="font-size:19px;margin-top:4px">出炉自动上架货架 · 可存 10 件</div></div>
+      <div class="chip" style="flex:none">炉数不限</div>
+      <div style="font-size:30px;color:#8a5a12;flex:none">›</div>
+    </div>
+    <div class="luxpanel" style="height:108px;display:flex;align-items:center;gap:16px;padding:0 26px">
+      <span class="cn c1"></span><span class="cn c2"></span><span class="cn c3"></span><span class="cn c4"></span>
+      <div class="badge">0</div>
+      <div style="display:flex;gap:5px;width:60px;flex:none">
+        <div style="width:16px;height:52px;border:2px solid #050302;background:linear-gradient(180deg,#c8d0d8,#6b7480);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)"></div>
+        <div style="width:16px;height:52px;border:2px dashed rgba(171,148,116,.45);background:rgba(0,0,0,.35)"></div>
+        <div style="width:16px;height:52px;border:2px dashed rgba(171,148,116,.45);background:rgba(0,0,0,.35)"></div>
+      </div>
+      <div style="flex:1"><div style="font-size:29px;color:#ffe9a8;letter-spacing:2px">货 架</div><div class="cp" style="font-size:19px;margin-top:4px">明日开集 · 待售 0 / 10 件</div></div>
+      <div style="font-size:30px;color:#8a5a12;flex:none">›</div>
+    </div>
+  </div>
+  <div class="luxpanel" style="position:absolute;left:22px;right:22px;top:666px;height:74px;z-index:14;display:flex;align-items:center;gap:14px;padding:0 24px">
+    <span class="cn c1"></span><span class="cn c2"></span><span class="cn c3"></span><span class="cn c4"></span>
+    <div class="stepper"><div class="s on"><span class="d"></span>买矿</div><div class="ln"></div><div class="s"><span class="d"></span>锻造</div><div class="ln"></div><div class="s"><span class="d"></span>上架</div><div class="ln"></div><div class="s"><span class="d"></span>开集</div></div>
+    <div class="sp"></div><div class="cp" style="font-size:19px;white-space:nowrap">第 6 晚交租 <span class="danger">200</span> 金</div>
+  </div>
+  <div style="position:absolute;left:24px;right:24px;bottom:100px;z-index:20;display:flex;flex-direction:column;gap:16px">
+    <div class="btn gold" style="height:140px;font-size:44px"><div class="stack">开 始 锻 造<span class="sub">柜台买矿 → 锻炉选料开锤 → 上架</span></div></div>
+    <div style="display:flex;gap:14px">
+      <div class="btn ghost" style="flex:1;height:88px;font-size:26px">今日收工</div>
+      <div class="btn steel" style="flex:1;height:88px;font-size:26px">名剑谱</div>
+      <div class="btn steel" style="flex:1;height:88px;font-size:26px">图鉴</div>
+    </div>
+  </div>
+</div></div></div></div>
+
+<!-- PIX 主菜单(纯像素) -->
+<div class="slot" data-s="menuPix"><h2>■ 主菜单 纯像素版(背景=自产合成 forge_room_v4，单一像素语言)</h2><div class="holder"><div class="frame"><div class="screen">
+  <div class="scene">
+    <img src="_real/forge_room_v4.png" style="position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated">
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,5,3,.80) 0%,rgba(8,5,3,.14) 26%,rgba(8,5,3,.12) 60%,rgba(8,5,3,.88) 100%)"></div>
+    <div class="vig"></div>
+  </div>
+  <div style="position:absolute;left:20px;top:20px;z-index:20">
+    <div class="luxpanel" style="height:60px;display:flex;align-items:center;gap:10px;padding:0 18px 0 12px">
+      <span class="cn c1"></span><span class="cn c2"></span><span class="cn c3"></span><span class="cn c4"></span>
+      <img class="luxicon" src="_real/ui/32px_pocketwatch.png" style="width:34px;height:34px">
+      <span style="font-size:24px">最长生存 <b style="color:#ffe9a8">12</b> 周</span>
+    </div>
+  </div>
+  <div style="position:absolute;right:20px;top:20px;z-index:20"><div class="pill" style="padding:0 10px"><span class="ico ore">⚙</span></div></div>
+  <div style="position:absolute;left:0;right:0;top:88px;text-align:center;z-index:12">
+    <div class="d1">淬火</div>
+    <div style="width:420px;height:2px;margin:16px auto 12px;background:linear-gradient(90deg,transparent,#8a5a12 25%,#ffc93c 50%,#8a5a12 75%,transparent);box-shadow:0 0 12px rgba(255,140,26,.6)"></div>
+    <div class="cp" style="letter-spacing:3px;font-size:21px">打铁 push-your-luck · 按住升温 · 见好就收</div>
+  </div>
+  <div class="luxpanel" style="position:absolute;left:50%;transform:translateX(-50%);top:978px;width:400px;height:72px;z-index:16;display:flex;align-items:center;gap:14px;padding:0 22px">
+    <span class="cn c1"></span><span class="cn c2"></span><span class="cn c3"></span><span class="cn c4"></span>
+    <div style="font-size:22px;color:#ffe9a8;white-space:nowrap">炉火</div>
+    <div class="luxbar" style="flex:1"><i style="width:72%"></i></div>
+    <div style="font-size:22px;color:#ffc93c;white-space:nowrap">第 1 天</div>
+  </div>
+  <div style="position:absolute;left:24px;right:24px;bottom:100px;z-index:20;display:flex;flex-direction:column;gap:16px">
+    <div class="btn gold" style="height:150px;font-size:46px"><div class="stack">开 始 锻 造<span class="sub">6 天为一期 · 第 6 晚交房租</span></div></div>
+    <div style="display:flex;gap:14px">
+      <div class="btn" style="flex:1;height:92px;font-size:26px">名剑谱</div>
+      <div class="btn" style="flex:1;height:92px;font-size:26px">手艺图鉴</div>
+      <div class="btn steel" style="flex:1;height:92px;font-size:26px">设置</div>
+      <div class="btn ghost" style="width:120px;height:92px;font-size:24px">关于</div>
+    </div>
+  </div>
+</div></div></div></div>
+
+<!-- PIX 经营主页(纯像素) -->
+<div class="slot" data-s="hubPix"><h2>■ 经营主页 纯像素版(同一背景压暗 + 像素描金工位面板)</h2><div class="holder"><div class="frame"><div class="screen">
+  <div class="scene">
+    <img src="_real/forge_room_v4.png" style="position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;filter:brightness(.6) saturate(.94)">
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,5,3,.88) 0%,rgba(8,5,3,.18) 22%,rgba(8,5,3,.26) 54%,rgba(8,5,3,.92) 100%)"></div>
+    <div class="vig"></div>
+  </div>
+  <div class="hud">
+    <div class="pill"><span class="ico cal">1</span>第1周·第1天</div><div class="sp"></div>
+    <div class="pill"><span class="ico">¥</span><b>20</b>金<span class="plus">+</span></div>
+    <div class="pill"><img class="luxicon" src="_real/ic/325.png" style="width:34px;height:34px">×3</div>
+    <div class="pill warn"><span class="ico rent">租</span><b>200</b></div>
+  </div>
+  <div class="luxpanel" style="position:absolute;left:50%;transform:translateX(-50%);top:112px;width:400px;height:88px;z-index:12;display:flex;align-items:center;justify-content:center">
+    <span class="cn c1"></span><span class="cn c2"></span><span class="cn c3"></span><span class="cn c4"></span>
+    <div style="font-size:38px;color:#ffe9a8;letter-spacing:8px;text-shadow:0 2px 0 rgba(0,0,0,.8),0 0 16px rgba(255,140,26,.45)">铁 匠 铺</div>
+  </div>
+  <div style="position:absolute;left:22px;right:22px;top:232px;z-index:14;display:flex;flex-direction:column;gap:22px">
+    <div class="luxpanel" style="height:108px;display:flex;align-items:center;gap:16px;padding:0 26px">
+      <span class="cn c1"></span><span class="cn c2"></span><span class="cn c3"></span><span class="cn c4"></span>
+      <div class="badge red">5折</div>
+      <img class="luxicon" src="_real/ic/340.png" style="width:60px;height:60px;flex:none">
+      <div style="flex:1"><div style="font-size:29px;color:#ffe9a8;letter-spacing:2px">材料柜台</div><div class="cp" style="font-size:19px;margin-top:4px">星纹钢 · 玄岩 · 废铁<span class="gold">1 金</span></div></div>
+      <div style="text-align:right;flex:none;margin-right:34px;white-space:nowrap"><div class="cp" style="font-size:18px">背包矿</div><div class="d2" style="font-size:38px">3<span style="font-size:18px" class="muted"> 块</span></div></div>
+      <div style="font-size:30px;color:#8a5a12;flex:none">›</div>
+    </div>
+    <div class="luxpanel" style="height:108px;display:flex;align-items:center;gap:16px;padding:0 26px">
+      <span class="cn c1"></span><span class="cn c2"></span><span class="cn c3"></span><span class="cn c4"></span>
+      <div style="width:60px;flex:none;display:flex;align-items:center;justify-content:center"><img class="luxicon" src="godot/art/scenery/forge_lit.png" style="width:56px;image-rendering:pixelated"></div>
+      <div style="flex:1"><div style="font-size:29px;color:#ffe9a8;letter-spacing:2px">锻 炉</div><div class="cp" style="font-size:19px;margin-top:4px">出炉自动上架货架 · 可存 10 件</div></div>
+      <div class="chip" style="flex:none">炉数不限</div>
+      <div style="font-size:30px;color:#8a5a12;flex:none">›</div>
+    </div>
+    <div class="luxpanel" style="height:108px;display:flex;align-items:center;gap:16px;padding:0 26px">
+      <span class="cn c1"></span><span class="cn c2"></span><span class="cn c3"></span><span class="cn c4"></span>
+      <div class="badge">0</div>
+      <div style="display:flex;gap:5px;width:60px;flex:none">
+        <div style="width:16px;height:52px;border:2px solid #050302;background:linear-gradient(180deg,#c8d0d8,#6b7480);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)"></div>
+        <div style="width:16px;height:52px;border:2px dashed rgba(171,148,116,.45);background:rgba(0,0,0,.35)"></div>
+        <div style="width:16px;height:52px;border:2px dashed rgba(171,148,116,.45);background:rgba(0,0,0,.35)"></div>
+      </div>
+      <div style="flex:1"><div style="font-size:29px;color:#ffe9a8;letter-spacing:2px">货 架</div><div class="cp" style="font-size:19px;margin-top:4px">明日开集 · 待售 0 / 10 件</div></div>
+      <div style="font-size:30px;color:#8a5a12;flex:none">›</div>
+    </div>
+  </div>
+  <div class="luxpanel" style="position:absolute;left:22px;right:22px;top:612px;height:74px;z-index:14;display:flex;align-items:center;gap:14px;padding:0 24px">
+    <span class="cn c1"></span><span class="cn c2"></span><span class="cn c3"></span><span class="cn c4"></span>
+    <div class="stepper"><div class="s on"><span class="d"></span>买矿</div><div class="ln"></div><div class="s"><span class="d"></span>锻造</div><div class="ln"></div><div class="s"><span class="d"></span>上架</div><div class="ln"></div><div class="s"><span class="d"></span>开集</div></div>
+    <div class="sp"></div><div class="cp" style="font-size:19px;white-space:nowrap">第 6 晚交租 <span class="danger">200</span> 金</div>
+  </div>
+  <div style="position:absolute;left:24px;right:24px;bottom:100px;z-index:20;display:flex;flex-direction:column;gap:16px">
+    <div class="btn gold" style="height:140px;font-size:44px"><div class="stack">开 始 锻 造<span class="sub">柜台买矿 → 锻炉选料开锤 → 上架</span></div></div>
+    <div style="display:flex;gap:14px">
+      <div class="btn ghost" style="flex:1;height:88px;font-size:26px">今日收工</div>
+      <div class="btn steel" style="flex:1;height:88px;font-size:26px">名剑谱</div>
+      <div class="btn steel" style="flex:1;height:88px;font-size:26px">图鉴</div>
+    </div>
+  </div>
+</div></div></div></div>
+
+<script>
+const q = new URLSearchParams(location.search);
+const av = q.get('asset');
+if (av === '2') document.body.classList.add('dusk');
+else if (av) document.body.classList.add('asset');
+const sk = q.get('skin');
+if (sk === 'lam') document.body.classList.add('lam');
+if (sk === 'svg') document.body.classList.add('svg');
+if (sk === 'sliced') document.body.classList.add('sl');
+const pxv = q.get('px');
+if (pxv) {
+  document.body.classList.add('px');
+  if (pxv === '16') document.body.classList.add('px16');
+  if (pxv === '16p') document.body.classList.add('px', 'px16p');
+}
+const only = q.get('only');
+if (only) {
+  document.body.classList.add('solo');
+  document.querySelectorAll('.slot').forEach(s => { if (s.dataset.s !== only) s.remove(); });
+  document.querySelector('h1').style.display = 'none';
+  document.querySelector('.note').style.display = 'none';
+  const sl = document.querySelector('.slot'); if (sl) sl.style.margin = '0';
+}
+// 16 档像素字体的字号阶梯:只有落在 16 的整数倍上才不糊。
+// 16=注释 32=正文 48=屏标题 64=结算大数 96/128=主视觉
+if (pxv === '16' || pxv === '16p') {
+  const snap = fs => fs >= 112 ? 128 : fs >= 88 ? 96 : fs >= 56 ? 64 : fs >= 40 ? 48 : fs >= 22 ? 32 : 16;
+  document.querySelectorAll('.screen, .screen *').forEach(el => {
+    const fs = parseFloat(getComputedStyle(el).fontSize);
+    const t = snap(fs);
+    if (Math.abs(t - fs) > 0.5) el.style.fontSize = t + 'px';
+  });
+}
+</script>
+</body>
+</html>
