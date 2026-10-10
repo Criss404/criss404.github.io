@@ -240,14 +240,45 @@ path.wire.on{stroke:var(--ac-hi);opacity:1;stroke-width:2}
   padding:3px 9px;border:1px solid var(--ln-hi);color:var(--tx-3);margin-bottom:34px}
 .tag.re{border-color:var(--ac-lo);color:var(--ac)}
 @media(max-width:820px){
-  .lab{grid-template-columns:1fr}
+  .wrap{padding:0 18px}
+  section{padding:clamp(80px,20vw,140px) 0}
+  .hd{gap:12px;margin-bottom:30px}
   .row{grid-template-columns:26px 1fr;gap:2px 12px}
   .row .n,.row .kind{grid-column:2}
+  .row .kind{justify-self:start}
   .row .d{grid-column:2;margin-top:2px}
-  #hero .ratio .big{font-size:54px}
-  .job{grid-template-columns:32px 1fr;gap:0 14px}
-  .job .meta{grid-column:2;text-align:left;margin-top:10px}
+  .job{grid-template-columns:28px 1fr;gap:0 12px;padding:30px 0}
+  .job .act{font-size:17px}
+  .job .meta{grid-column:2;text-align:left;margin-top:12px}
   .job .art{margin-top:0;margin-left:6px}
+  .tall{grid-template-columns:1fr 1fr}
+  .tall div{padding:18px 16px}
+  .tall b{font-size:34px}
+  .cmp{grid-template-columns:1fr 1fr}
+  .cmp div{padding:18px}
+  .refuse{margin-top:44px;padding:30px 20px}
+  .refuse h3{font-size:30px}
+  .term .cmd,.term .body{padding:13px 14px;font-size:11px}
+  /* 分屏：窄屏画不了连线，就把出处直接写进格子，"哪句到哪个格"的映射不丢 */
+  .map{grid-template-columns:1fr;gap:30px 0}
+  .map svg{display:none}
+  .dst::before{content:"第 " attr(data-line) " 条";order:-1;flex:0 0 auto;
+    font-family:var(--mono);font-size:10px;color:var(--tx-3);letter-spacing:.04em}
+  .dst[data-line="0"]::before{content:"无对应条款"}
+  /* 值本体不能截断：窄屏下允许换行，宁可两行也不出省略号 */
+  .dst{flex-wrap:wrap}
+  .dst .v{white-space:normal;text-overflow:clip;overflow:visible;max-width:100%}
+  /* 运行台是桌面三栏布局，窄屏下整体等比缩放（比例由 JS 算：CSS 拿不到无单位的长度比值）。
+     JS 没跑成时的兜底是 .stage 横向滚动，不至于把内容裁掉 */
+  .stage{overflow:auto}
+  .stage iframe{width:1080px;height:900px;transform-origin:0 0}
+}
+@media(max-width:400px){
+  #hero h1{font-size:31px}
+  #hero .ratio{flex-wrap:wrap;gap:14px}
+  #hero .ratio .big{font-size:44px}
+  .tall{grid-template-columns:1fr}
+  .cmp{grid-template-columns:1fr}
 }
 @media (prefers-reduced-motion:reduce){
   .line,.fld,button{transition:none}
@@ -383,7 +414,7 @@ body.probe .wrap>section.on{display:block!important}
     </div>
   </div>
 
-  <p class="punch" style="margin-top:40px">左边是那份 14 条的客户文件原文，右边是抽出来的 22 栏。线从句子连到它落的格子。<b>鼠标放到任意一句上</b>，看它扇出几条线。● 要人签字，✕ 作废退回，虚线格是「未提及」。</p>
+  <p class="punch" style="margin-top:40px">左边是那份 14 条的客户文件原文，右边是抽出来的 22 栏。线从句子连到它落的格子。<b>点一句或把鼠标放上去</b>，看它扇出几条线。● 要人签字，✕ 作废退回，虚线格是「未提及」。</p>
   <div class="map" id="map">
     <div class="col" id="srccol"><div class="cap">客户技术要求 · runs/004/input.txt</div>
       <div class="src" id="S1" data-n="1"><span class="n">01</span>产品名称：冷却液储液罐总成，图号 893A-0100，现行版本 Rev C。</div>
@@ -557,6 +588,22 @@ if(RM||FROZEN||ONLY||!('IntersectionObserver' in window)){
   if(Q.get('open')==='1'){box.classList.add('open');b.textContent='收起'}
 });
 
+/* ───────── 02 节：窄屏下把桌面运行台等比缩放 ─────────
+   scale() 只接受无单位数字，CSS 里算不出「容器宽/1080」这个比值，只能 JS 来。
+   缩放的是外层，不碰 iframe 内部一个字节。 */
+var stage=document.querySelector('.stage'),frame=stage&&stage.querySelector('iframe');
+function fitStage(){
+  if(!frame)return;
+  if(innerWidth>820){
+    frame.style.transform='';frame.style.width='100%';stage.style.height='';return;
+  }
+  var s=stage.clientWidth/1080;
+  frame.style.width='1080px';
+  frame.style.transform='scale('+s+')';
+  stage.style.height=Math.round(900*s)+'px';
+}
+fitStage();addEventListener('resize',fitStage);
+
 /* ───────── 03 节：原文 → 栏位 连线 ─────────
    两列内容全是静态 HTML，线只是增强层：JS 挂掉或无 JS 时两列照样读得通。
    连线关系不写死，由每个格子身上的 data-line（第几条）现算，改数据不用改代码。 */
@@ -629,6 +676,13 @@ if(map){
     var n=s.getAttribute('data-n');
     s.addEventListener('mouseenter',function(){hi(n,true)});
     s.addEventListener('mouseleave',function(){hi(n,false)});
+    /* 触屏没有 hover：点一下钉住这一句的连线，再点取消 */
+    s.addEventListener('click',function(){
+      var on=s.classList.contains('on');
+      wires.forEach(function(p){p.classList.remove('on')});
+      [].forEach.call(map.querySelectorAll('.on'),function(e){e.classList.remove('on')});
+      if(!on)hi(n,true);
+    });
   });
 }
 
