@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent 运行台 · 技术要求 → 内部规格表</title>
+<style>
+:root{
+  --w0:#070910; --w1:#0d1018; --w2:#141824; --w3:#1c2231; --w4:#293241;
+  --tx:#e2e7f1; --tx2:rgba(226,231,241,.64); --tx3:rgba(226,231,241,.33);
+  --am:#c48644; --am-h:#fce2b0; --am-l:#5e3f2a;
+  --cy:#4fa8b8; --cy-h:#bfeef5; --cy-l:#22505a;
+  --ok:#63b37a; --warn:#d2743c; --bad:#c9503f; --ln:#1e2533;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --e:cubic-bezier(.22,.61,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--w0);color:var(--tx);font-size:13.5px;line-height:1.7;overflow:hidden;
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased}
+.mono{font-family:var(--mono)}
+button{appearance:none;font:inherit;cursor:pointer}
+b,strong{font-weight:700;color:var(--am-h)}
+
+/* ── 底：蓝图网格（技术图纸母题，有逻辑位置的纹理，不是均匀噪点）── */
+#bp{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+  background:
+    linear-gradient(rgba(79,168,184,.045) 1px,transparent 1px) 0 0/100% 44px,
+    linear-gradient(90deg,rgba(79,168,184,.045) 1px,transparent 1px) 0 0/44px 100%,
+    linear-gradient(rgba(79,168,184,.022) 1px,transparent 1px) 0 0/100% 11px,
+    linear-gradient(90deg,rgba(79,168,184,.022) 1px,transparent 1px) 0 0/11px 100%;
+  -webkit-mask-image:radial-gradient(120% 90% at 50% 42%,#000 20%,transparent 78%);
+          mask-image:radial-gradient(120% 90% at 50% 42%,#000 20%,transparent 78%)}
+#app{position:relative;z-index:1;height:100vh;display:grid;grid-template-rows:46px 1fr 184px 48px}
+
+/* ── 标题栏 ── */
+.tbar{display:flex;align-items:center;gap:16px;padding:0 16px;background:rgba(13,16,24,.92);
+  border-bottom:1px solid var(--ln);position:relative}
+.tbar::after{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:
+  linear-gradient(90deg,transparent,rgba(79,168,184,.4) 16%,rgba(196,134,68,.34) 64%,transparent)}
+.tbar .id{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--tx2)}
+.tbar .id b{color:var(--tx)}
+.st{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;
+  letter-spacing:.14em;padding:3px 9px;border:1px solid var(--w4);color:var(--tx2)}
+.st .led{width:6px;height:6px;background:var(--tx3)}
+.st.run{color:var(--cy-h);border-color:var(--cy-l)}
+.st.run .led{background:var(--cy);box-shadow:0 0 0 3px rgba(79,168,184,.16);animation:pl 1.6s var(--e) infinite}
+@keyframes pl{0%,100%{box-shadow:0 0 0 2px rgba(79,168,184,.10)}50%{box-shadow:0 0 0 5px rgba(79,168,184,.22)}}
+.st.done{color:var(--ok);border-color:#2c4b36}
+.st.done .led{background:var(--ok);box-shadow:0 0 0 3px rgba(99,179,122,.18)}
+.kv{font-family:var(--mono);font-size:11px;color:var(--tx3);letter-spacing:.04em;white-space:nowrap}
+.kv i{font-style:normal;color:var(--tx);font-weight:700}
+.sp{margin-left:auto}
+
+/* ── 三栏 ── */
+main{display:grid;grid-template-columns:26% 1fr 28%;min-height:0;background:var(--ln);gap:1px}
+.pane{background:var(--w1);display:flex;flex-direction:column;min-width:0;min-height:0;position:relative}
+.pane::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;z-index:2;
+  background:linear-gradient(90deg,transparent,rgba(226,231,241,.09),transparent)}
+.ph{display:flex;align-items:baseline;gap:10px;padding:9px 14px;background:var(--w2);
+  border-bottom:1px solid var(--ln);font-family:var(--mono);font-size:10.5px;
+  letter-spacing:.14em;color:var(--tx3);white-space:nowrap;overflow:hidden}
+.ph .t{color:var(--tx2)}
+.ph em{margin-left:auto;font-style:normal;color:var(--am);font-size:11px}
+.pbody{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--w4) transparent}
+.pbody::-webkit-scrollbar{width:4px}
+.pbody::-webkit-scrollbar-thumb{background:var(--w4)}
+.prog{height:2px;background:var(--w2);position:relative;z-index:2}
+.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cy),var(--am))}
+
+/* ── ① 源文档 ── */
+.doc{padding:4px 0 14px}
+.sen{position:relative;display:grid;grid-template-columns:26px 1fr;gap:8px;padding:4px 14px;
+  font-size:12.6px;line-height:1.82;color:var(--tx3);border-left:2px solid transparent;
+  transition:color .3s var(--e),background .3s var(--e),border-color .3s var(--e)}
+.sen .n{font-family:var(--mono);font-size:10.5px;color:#3a4354;padding-top:1px}
+.sen.read{color:var(--tx2)}
+.sen.cur{color:var(--tx);border-left-color:var(--am);
+  background:linear-gradient(90deg,rgba(196,134,68,.13),rgba(196,134,68,.02) 60%,transparent)}
+/* 读取头：位置由时钟驱动，可定格可拖 */
+.sen.cur::after{content:"";position:absolute;top:2px;bottom:2px;width:2px;left:var(--p,0%);
+  background:var(--am-h);box-shadow:0 0 8px 1px rgba(252,226,176,.5)}
+.ent{font-style:normal;transition:color .3s var(--e),background .3s var(--e),box-shadow .3s var(--e),
+  border-color .3s var(--e);border-bottom:1px solid transparent}
+.ent.hit{color:var(--am-h);border-bottom-color:var(--am-l)}
+.ent.hot{color:#0b0a08;background:var(--am);border-bottom-color:var(--am);
+  box-shadow:0 0 0 3px rgba(196,134,68,.22)}
+.ent.guess{color:var(--cy-h);border-bottom:1px dashed var(--cy)}
+.ent.guess.hit{color:var(--cy-h);border-bottom-color:var(--cy)}
+.ent.cf{color:#f0b7a6;border-bottom:1px dashed var(--bad)}
+
+/* ──  事件流 ── */
+.ev{padding:10px 0 16px}
+.card{border-left:2px solid var(--w4);padding:7px 14px 8px;opacity:0;transform:translateY(6px);
+  transition:opacity .26s var(--e),transform .26s var(--e),border-color .26s var(--e)}
+.card.on{opacity:1;transform:none}
+.card .hd{display:flex;align-items:baseline;gap:9px;font-family:var(--mono);font-size:11px;
+  letter-spacing:.06em}
+.card .kind{padding:1px 6px;border:1px solid currentColor;font-size:9px;letter-spacing:.14em}
+.card .fn{color:var(--tx);font-weight:700;font-size:12px;letter-spacing:0}
+.card .ms{margin-left:auto;color:var(--tx3);font-size:10.5px}
+.card .bd{font-size:12.4px;color:var(--tx2);margin-top:4px;line-height:1.76}
+.card .args{font-family:var(--mono);font-size:11.2px;color:var(--cy-h);margin-top:5px;
+  background:var(--w2);padding:5px 9px;border-left:1px solid var(--cy-l);word-break:break-all}
+.card .args .p{color:var(--tx3)}
+.card .lat{margin-top:5px;display:flex;align-items:center;gap:8px;font-family:var(--mono);
+  font-size:9.5px;color:var(--tx3)}
+.card .lat .lb{height:2px;flex:1;max-width:110px;background:var(--w3);overflow:hidden}
+.card .lat .lb i{display:block;height:100%;background:var(--cy);width:0}
+.k-think{border-left-color:var(--cy)} .k-think .kind{color:var(--cy)}
+.k-tool .kind{color:var(--tx2)}
+.k-ok{border-left-color:#2c4b36} .k-ok .kind{color:var(--ok)}
+.k-warn{border-left-color:var(--warn)} .k-warn .kind{color:var(--warn)} .k-warn .bd{color:#eec3a6}
+.k-bad{border-left-color:var(--bad)} .k-bad .kind{color:#f0b7a6} .k-bad .bd{color:#f3c3b5}
+.k-sys .kind{color:var(--tx3)}
+.k-done{border-left-color:var(--am)} .k-done .kind{color:var(--am)}
+.caret{display:inline-block;width:6px;height:13px;background:var(--am);vertical-align:-2px;
+  animation:bk 1.05s steps(1) infinite}
+@keyframes bk{0%,50%{opacity:1}51%,100%{opacity:0}}
+
+/* ── ③ 产物 ─ */
+.grp{display:flex;align-items:baseline;gap:8px;padding:9px 14px 4px;font-family:var(--mono);
+  font-size:10px;letter-spacing:.16em;color:var(--tx3);
+  border-bottom:1px solid rgba(30,37,51,.8);background:linear-gradient(180deg,var(--w2),transparent)}
+.grp b{color:var(--tx2);font-weight:700;letter-spacing:.1em}
+.grp i{margin-left:auto;font-style:normal;color:#3a4354}
+.f{display:grid;grid-template-columns:1fr auto;gap:1px 10px;padding:5px 14px 6px;
+  border-bottom:1px solid rgba(30,37,51,.55);position:relative}
+.f .k{font-size:11.4px;color:var(--tx3);grid-column:1;grid-row:1}
+.f .v{grid-column:1;grid-row:2;font-family:var(--mono);font-size:14.5px;font-weight:700;
+  color:var(--tx2);opacity:0;transform:translateX(-7px);letter-spacing:-.01em;
+  transition:opacity .3s var(--e),transform .3s var(--e),color .3s var(--e)}
+.f .at{grid-column:2;grid-row:1/3;font-family:var(--mono);font-size:9.5px;color:#3a4354;
+  display:flex;align-items:center;gap:5px;letter-spacing:.05em}
+.f .at .d{width:5px;height:5px;background:var(--w3);transition:background .3s var(--e)}
+.f.w .v{opacity:1;transform:none;color:var(--am-h)}
+.f.w .at{color:var(--tx3)} .f.w .at .d{background:var(--am)}
+.f.w.g .v{color:var(--cy-h)} .f.w.g .at .d{background:var(--cy)}
+.f.w.na .v{color:var(--tx2)} .f.w.na .at .d{background:var(--warn)}
+.f.w.cf .v{color:#f3c3b5} .f.w.cf .at .d{background:var(--bad)}
+.f .tg{display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:.08em;
+  padding:0 5px;border:1px solid var(--cy-l);color:var(--cy);margin-left:7px;vertical-align:1.5px}
+.f.w.na .tg{border-color:var(--warn);color:var(--warn)}
+.f.w.cf .tg{border-color:var(--bad);color:#f3c3b5}
+.f.flash{background:rgba(196,134,68,.08)}
+.sum{margin:10px 14px 14px;padding:10px 8px;background:var(--w2);border:1px solid var(--ln);
+  display:grid;grid-template-columns:repeat(4,1fr)}
+.sum div{text-align:center;padding:0 4px}
+.sum b{display:block;font-family:var(--mono);font-size:21px;font-weight:900;line-height:1.25;
+  color:var(--am);font-variant-numeric:tabular-nums}
+.sum .g b{color:var(--cy)} .sum .n b{color:var(--warn)} .sum .c b{color:var(--bad)}
+.sum span{font-size:10px;color:var(--tx3);letter-spacing:.04em}
+
+/* ── ④ 数据流图 ── */
+#gfx{background:linear-gradient(180deg,var(--w1),#0a0d15);border-top:1px solid var(--ln);
+  position:relative;display:flex;flex-direction:column;padding:8px 16px 0}
+#gfx .g-hd{display:flex;align-items:baseline;gap:14px;font-family:var(--mono);font-size:10px;
+  letter-spacing:.14em;color:var(--tx3)}
+#gfx .g-hd .t{color:var(--tx2)}
+#graph{flex:1;min-height:0;width:100%}
+#graph text{font-family:var(--mono)}
+.nbox{fill:var(--w2);stroke:var(--w4);stroke-width:1;transition:stroke .3s var(--e),fill .3s var(--e)}
+.nbox.act{fill:#18202e;stroke:var(--cy)}
+.nbox.out{stroke:var(--am)}
+.ntitle{fill:var(--tx2);font-size:12.5px;font-weight:700}
+.nsub{fill:var(--tx3);font-size:9.5px;letter-spacing:.04em}
+.ncnt{fill:var(--am-h);font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.ncnt.c{fill:var(--cy-h)} .ncnt.z{fill:#3a4354}
+.ntagn{fill:var(--tx3);font-size:8.5px;letter-spacing:.14em}
+.tick{stroke:var(--w4);stroke-width:1;fill:none}
+.edge{fill:none;stroke:#232b39;stroke-width:1.2;transition:stroke .25s var(--e)}
+.edge.live{stroke:var(--cy-l)}
+.pkt{fill:var(--cy-h)} .pkt.w{fill:var(--am-h)}
+.halo{fill:none;stroke:var(--cy);stroke-width:.7;opacity:.45}
+.halo.w{stroke:var(--am)}
+.lbl{fill:var(--tx3);font-size:9px;letter-spacing:.1em}
+.arr{fill:none;stroke:#232b39;stroke-width:1.2}
+
+/* ── 底部 ── */
+.foot{display:flex;align-items:center;gap:14px;padding:0 16px;background:var(--w2);
+  border-top:1px solid var(--ln);overflow:hidden}
+#narr{font-size:13px;color:var(--tx2);flex:0 0 auto;max-width:44%;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.ctrl{display:flex;align-items:center;gap:7px;margin-left:auto}
+.btn{font-family:var(--mono);font-size:11px;letter-spacing:.08em;padding:6px 13px;
+  background:var(--w3);color:var(--tx2);border:1px solid var(--w4);
+  transition:background .16s var(--e),color .16s var(--e),transform .1s var(--e)}
+.btn:hover{background:var(--w4);color:var(--tx)}
+.btn:active{transform:translateY(2px)}
+.btn.pri{background:var(--am);color:#100d09;border-color:var(--am);font-weight:700}
+.btn.pri:hover{background:var(--am-h)}
+.btn.on{border-color:var(--cy);color:var(--cy-h)}
+#tl{flex:1;height:3px;background:var(--w3);position:relative;min-width:110px;cursor:pointer}
+#tl i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--cy),var(--am));width:0}
+#tl .mk{position:absolute;top:-3px;width:1px;height:9px;background:var(--w4)}
+#tl .mk.beat{background:var(--am-l);height:11px;top:-4px}
+#clk{font-family:var(--mono);font-size:11px;color:var(--tx3);min-width:108px;text-align:right;
+  font-variant-numeric:tabular-nums}
+body.frz *{transition:none!important;animation:none!important}
+@media(max-width:1180px){
+  .foot{gap:9px;padding:0 10px}
+  #narr{font-size:12px;max-width:36%}
+  .ctrl{gap:5px}
+  .btn{padding:6px 9px;font-size:10.5px;letter-spacing:.04em;white-space:nowrap}
+  #clk{min-width:82px;font-size:10.5px}
+  .tbar{gap:10px;padding:0 10px}
+  .kv{font-size:10px}
+}
+@media (prefers-reduced-motion:reduce){.caret,.st.run .led{animation:none}}
+@media(max-width:900px){main{grid-template-columns:1fr}.pane:nth-child(1),.pane:nth-child(3){display:none}}
+</style>
+</head>
+<body>
+<div id="bp"></div>
+<div id="app">
+
+  <div class="tbar">
+    <span class="id">RUN <b>EX-2261</b></span>
+    <span class="st" id="st"><span class="led"></span><span id="stv">IDLE</span></span>
+    <span class="kv">MODEL <i>qwork-fde</i></span>
+    <span class="kv">DOC <i>G 0505 Q-02-01 · Rev C</i></span>
+    <span class="sp"></span>
+    <span class="kv">回指 <i id="kBack">0/0</i></span>
+    <span class="kv">STEP <i id="kStep">0</i></span>
+    <span class="kv">TOKENS <i id="kTok">0</i></span>
+    <span class="kv">COST <i id="kCost">¥0.00</i></span>
+  </div>
+
+  <main>
+    <div class="pane">
+      <div class="ph"><span class="t">① 源文档</span>技术要求 · 22 句</div>
+      <div class="prog"><i id="pg1"></i></div>
+      <div class="pbody" id="docWrap"><div class="doc" id="doc"></div></div>
+    </div>
+
+    <div class="pane">
+      <div class="ph"><span class="t">② 事件流</span>reasoning · tool · observation
+        <em>LIVE</em></div>
+      <div class="prog"><i id="pg2"></i></div>
+      <div class="pbody" id="evWrap"><div class="ev" id="ev"></div></div>
+    </div>
+
+    <div class="pane">
+      <div class="ph"><span class="t">③ 产物</span>内部规格表<em id="aCnt">0 / 40</em></div>
+      <div class="prog"><i id="pg3"></i></div>
+      <div class="pbody"><div id="art"></div>
+        <div class="sum">
+          <div><b id="t1">0</b><span>显式</span></div>
+          <div><b id="t2" class="g">0</b><span>推断</span></div>
+          <div><b id="t3" class="n">0</b><span>未提及</span></div>
+          <div><b id="t4" class="c">0</b><span>冲突待人工</span></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="gfx">
+    <div class="g-hd"><span class="t">④ 数据流</span>
+      <span>文档 → 索引 → 抽取 → 校验 → 落表 · 青=在途 琥珀=已写入</span>
+      <span style="margin-left:auto">RETRY = 校验不通过时回退重抽</span></div>
+    <svg id="graph" viewBox="0 0 1200 128" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+
+  <div class="foot">
+    <div id="narr">加载中…</div>
+    <div class="ctrl">
+      <button class="btn pri" id="bPlay">❙❙ 暂停</button>
+      <button class="btn" id="bReset">重置</button>
+      <button class="btn on" id="bLoop">循环 开</button>
+      <button class="btn" id="bSpd">1.0×</button>
+    </div>
+    <div id="tl"><i></i></div>
+    <div id="clk">0.0 / 0.0 s</div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var Q=new URLSearchParams(location.search);
+var FROZEN=Q.has('t');
+if(FROZEN)document.body.classList.add('frz');
+
+/* ══════════ 数据：40 栏字段（按组）══════════
+   [组, key, 栏名, 值, 句序(0基，-1=原文无), 标记]  标记: ''|推断|未提及|冲突  */
+var G=[
+ ['材料','name','产品名称','汽车膨胀水箱（冷却液储液罐）',0,''],
+ ['材料','mat','材料牌号','PP / K8003',1,''],
+ ['材料','matlmt','原料限制','不得掺用回收料',1,'推断'],
+ ['材料','flame','阻燃等级','UL94 V-2',2,''],
+ ['材料','medium','耐介质','G-12 型乙二醇冷却液',2,''],
+ ['材料','qual','供料方资质','—',-1,'未提及'],
+ ['外观','color','颜色 / 色号','黑色 / HG-202',3,''],
+ ['外观','de','色差','ΔE ≤ 1.5',3,''],
+ ['外观','appear','外观缺陷','无缩痕 / 气泡 / 熔接线',3,''],
+ ['外观','part','分型线位置','不得位于可视面',4,'推断'],
+ ['外观','scl','刻度线','透光筋成型 MIN/MAX',4,''],
+ ['尺寸','shrink','成型收缩率','0.8 ~ 1.2 %',5,''],
+ ['尺寸','volE','有效容积','≥ 0.55 L',6,''],
+ ['尺寸','volT','总容积','0.80 L',6,''],
+ ['尺寸','fill','充填率','70 %',6,'推断'],
+ ['尺寸','env','外形包络','268 × 174 × 132 mm',7,''],
+ ['尺寸','pos','安装孔位置度','φ0.5 · 基准 A/B/C',8,''],
+ ['尺寸','thr','加注口螺纹','M42 × 1.5',8,''],
+ ['尺寸','noz','水嘴直径','φ22 ± 0.2 / φ16 ± 0.2',9,''],
+ ['尺寸','ang','水嘴夹角','62° ± 1°',9,''],
+ ['尺寸','tol','未注公差','GB/T 1804-m',10,''],
+ ['尺寸','flat','焊边平面度','≤ 0.3 mm',10,''],
+ ['性能','airp','气密压力','0.15 MPa',11,''],
+ ['性能','airt','保压时间','30 s',11,''],
+ ['性能','leak','渗漏量','≤ 5 mL/min',11,''],
+ ['性能','proof','静压保持','0.25 MPa / 60 s',12,''],
+ ['性能','burst','爆破压力','≥ 0.60 MPa',12,''],
+ ['性能','cap','盖开启压力','110 ± 7 kPa',13,''],
+ ['性能','vac','真空阀开启压力','−3 kPa',13,''],
+ ['性能','temp','使用温度区间','−40 ~ +95 ℃',14,''],
+ ['性能','pull','水嘴抗拔脱力','≥ 300 N',17,''],
+ ['性能','clean','内腔清洁度','—',-1,'未提及'],
+ ['试验','cyc','高低温循环','−40 ~ +120 ℃ / 1000 次',15,'冲突'],
+ ['试验','pcy','压力循环','0 ~ 0.2 MPa / 5000 次',16,''],
+ ['试验','vib','振动耐久','QC/T 4170 附录 C',16,''],
+ ['试验','drop','落锤试验','—',-1,'未提及'],
+ ['试验','uv','紫外老化','—',-1,'未提及'],
+ ['体系','std','执行标准','QC/T 4170 · GQ-02',19,''],
+ ['体系','ppap','PPAP 提交等级','Level 3',20,''],
+ ['体系','trace','追溯码格式','893A-0100-YYWW-LOT',18,'']
+];
+/* ══════════ 22 句技术要求；锚点用 key 引用，避免下标错位 ══════════ */
+var DOC=[
+ ['产品名称：汽车膨胀水箱（冷却液储液罐），图号 893A-0100。',
+  [['name','汽车膨胀水箱（冷却液储液罐）']]],
+ ['本件采用聚丙烯材料，牌号 K8003，供料方须保证原料中不得掺用回收料。',
+  [['mat','牌号 K8003'],['matlmt','供料方须保证原料中不得掺用回收料',1]]],
+ ['材料应满足 UL94 V-2 阻燃要求，并与 G-12 型乙二醇冷却液长期相容。',
+  [['flame','UL94 V-2'],['medium','G-12 型乙二醇冷却液']]],
+ ['外观呈黑色，色号 HG-202，同批色差控制在 ΔE 1.5 以内，表面不得出现缩痕、气泡及熔接线。',
+  [['color','黑色，色号 HG-202'],['de','ΔE 1.5 以内'],['appear','缩痕、气泡及熔接线']]],
+ ['分型线不得出现在可视面，刻度线 MIN/MAX 采用透光筋成型。',
+  [['part','分型线不得出现在可视面',1],['scl','透光筋成型']]],
+ ['成型收缩率按 0.8% ~ 1.2% 控制，标准环境 23℃。',[['shrink','0.8% ~ 1.2%']]],
+ ['有效容积不小于 0.55 L，总容积 0.80 L，充填率按 70% 校核。',
+  [['volE','不小于 0.55 L'],['volT','0.80 L'],['fill','充填率按 70%',1]]],
+ ['外形包络不得超出布置数模给出的极限位置，最大轮廓 268 × 174 × 132 mm。',
+  [['env','268 × 174 × 132 mm']]],
+ ['安装孔位置度 φ0.5（基准 A/B/C），加注口螺纹 M42 × 1.5。',
+  [['pos','φ0.5（基准 A/B/C）'],['thr','M42 × 1.5']]],
+ ['上水嘴外径 φ22 ± 0.2，回水嘴 φ16 ± 0.2，两嘴夹角 62° ± 1°。',
+  [['noz','φ22 ± 0.2，回水嘴 φ16 ± 0.2'],['ang','62° ± 1°']]],
+ ['未注尺寸公差按 GB/T 1804-m 执行，焊边平面度 ≤ 0.3 mm。',
+  [['tol','GB/T 1804-m'],['flat','≤ 0.3 mm']]],
+ ['装配前须通过气密试验：0.15 MPa 保压 30 秒，渗漏量不超过 5 mL/min。',
+  [['airp','0.15 MPa'],['airt','保压 30 秒'],['leak','不超过 5 mL/min']]],
+ ['静压保持 0.25 MPa / 60 s 不破裂，爆破压力不低于 0.60 MPa。',
+  [['proof','0.25 MPa / 60 s'],['burst','不低于 0.60 MPa']]],
+ ['压力盖开启压力 110 ± 7 kPa，真空阀开启压力 −3 kPa。',
+  [['cap','110 ± 7 kPa'],['vac','−3 kPa']]],
+ ['使用温度区间 -40℃ 至 +95℃。',[['temp','-40℃ 至 +95℃']]],
+ ['高低温循环试验条件为 -40℃ ~ +120℃，1000 次。',[['cyc','-40℃ ~ +120℃，1000 次']]],
+ ['压力循环 0 ~ 0.2 MPa，5000 次；振动耐久按 QC/T 4170 附录 C。',
+  [['pcy','0 ~ 0.2 MPa，5000 次'],['vib','QC/T 4170 附录 C']]],
+ ['水嘴抗拔脱力不小于 300 N。',[['pull','不小于 300 N']]],
+ ['标识应包含 CCC 标志、零件号与生产批次，追溯码格式 893A-0100-YYWW-LOT。',
+  [['trace','893A-0100-YYWW-LOT']]],
+ ['本件应符合 QC/T 4170 及企业内控标准 GQ-02。',[['std','QC/T 4170 及企业内控标准 GQ-02']]],
+ ['提交等级按 PPAP Level 3，分供方须先行批准，包装采用可折叠料箱 12 件/箱。',
+  [['ppap','PPAP Level 3']]],
+ ['特殊特性由顾客在图纸上标注，本件图纸现行版本 Rev C。',[]]
+];
+var FK={};G.forEach(function(f,i){FK[f[1]]={i:i,f:f}});
+
+/* ══════════ 事件表：一句一拍自动排布 + 手写关键剧情 ══════════ */
+var T_S=1.05;                       /* 每句节拍 */
+function wOf(i){return G[i][4]}     /* 字段所属句 */
+var EV=[
+ {t:.25,k:'sys',kind:'sys',fn:'run.start',
+  ar:'doc=<span class="p">"G 0505 Q-02-01 Rev C.pdf"</span> · target=<span class="p">"内部规格表 40 栏"</span>',
+  bd:'绑定文档 · 规则集 <span class="mono">GQ-02 / AIAG PPAP-4 / GB-T 1804</span>',tok:0},
+ {t:.95,k:'card',kind:'think',fn:'plan',
+  bd:'22 句 → 40 栏。先建句序索引，再逐句抽实体；<b>每个值必须回指原文锚点</b>。回指不上的不填，冲突的不折中，一律交人工。'},
+ {t:1.9,k:'flow',e:'e1',n:4,d:.85},
+ {t:2.15,k:'tool',fn:'read_doc()',ar:'ocr=<span class="p">true</span> · table_ocr=<span class="p">true</span>',
+  ms:420,bd:'22 句 / 1,084 字 · 表格 0 张 · 图 0 张 · 公式 1 处',tok:640},
+ {t:2.9,k:'flow',e:'e2',n:3,d:.7},
+ {t:3.15,k:'card',kind:'ok',fn:'index',ms:120,bd:'句序索引完成 · 22 句 · 平均 49 字 · 抽取就绪'}
+];
+/* 逐句抽取：每句一拍 */
+var SENT_T0=3.9;
+DOC.forEach(function(row,i){
+  var keys=row[1].map(function(m){return m[0]});
+  if(!keys.length)return;
+  var t=SENT_T0+i*T_S;
+  EV.push({t:t,k:'flow',e:'e3',n:2,d:.5,sent:i});
+  EV.push({t:t+.12,k:'tool',fn:'extract(sent='+(i+1)+')',
+    ar:'targets=<span class="p">['+keys.join(', ')+']</span>',
+    ms:280+((i*137)%420),sent:i,
+    bd:keys.length+' 栏命中 · 锚点回指 '+keys.length+'/'+keys.length,
+    tok:120+keys.length*46});
+  EV.push({t:t+.62,k:'write',keys:keys,sent:i});
+});
+/* 关键剧情 */
+var T_AFTER=SENT_T0+DOC.length*T_S+.4;
+EV=EV.concat([
+ {t:T_AFTER,k:'flow',e:'e4',n:5,d:1.0},
+ {t:T_AFTER+.2,k:'tool',fn:'verify()',
+  ar:'rules=<span class="p">[单位表, 量纲, 区间, 回指, 组内一致性]</span>',ms:310,
+  bd:'40 栏 · 通过 34 · <b>1 栏存疑</b>（收缩率超 PP 常规区间）· <b>1 组冲突</b>（使用温度 vs 试验温度）· 4 栏原文无',
+  tok:2100},
+ {t:T_AFTER+1.1,k:'card',kind:'warn',fn:'retry · 收缩率',
+  bd:'校验不通过时<b>不猜</b>。带规则反馈回退重抽一次。'},
+ {t:T_AFTER+1.3,k:'flow',e:'e6',n:2,d:.85},
+ {t:T_AFTER+1.9,k:'tool',fn:'extract(sent=6, hint=…)',
+  ar:'hint=<span class="p">"收缩率超出 PP 常规区间"</span>',ms:560,
+  bd:'回指原文：0.8~1.2% 系<b>牌号 K8003 技术数据表值</b>，非笔误 → 保留原值并记录依据',tok:380},
+ {t:T_AFTER+2.6,k:'write',keys:['shrink'],ok:1},
+ {t:T_AFTER+3.0,k:'card',kind:'ok',fn:'verify(re-check)',ms:90,bd:'复核通过 · 35/36 · 全部锚点可回指'},
+ {t:T_AFTER+3.5,k:'card',kind:'bad',fn:'conflict · 温度',
+  ar:'S15=<span class="p">"−40 ~ +95 ℃"</span> · S16=<span class="p">"−40 ~ +120 ℃ 循环"</span>',
+  bd:'试验温度<b>高于</b>使用温度上限 25 ℃。两种解释都成立（考核留余量 / 文档笔误），<b>模型无权折中</b> → 标「冲突待人工」，同时挂出两个原文锚点。'},
+ {t:T_AFTER+4.4,k:'flow',e:'e3',n:3,d:.8},
+ {t:T_AFTER+4.6,k:'card',kind:'warn',fn:'search()',
+  ar:'kw=<span class="p">["清洁度","异物","称重","落锤","氙灯","紫外","资质","体系认证"]</span>',ms:80,
+  bd:'4 组关键词全文 0 命中 → 这 4 栏<b>不填</b>，标「未提及」交人工'},
+ {t:T_AFTER+5.2,k:'write',keys:['clean','drop','uv','qual'],na:1},
+ {t:T_AFTER+5.7,k:'write',keys:['cyc'],cf:1},
+ {t:T_AFTER+6.1,k:'card',kind:'done',fn:'run.done',
+  bd:'40 栏：<b>31 显式 · 3 推断 · 4 未提及 · 1 冲突</b>。人只需处理那 <b>5 栏</b>。',tok:0},
+ {t:T_AFTER+6.9,k:'status',v:'DONE'}
+]);
+var T_END=T_AFTER+8.6;
+EV.sort(function(a,b){return a.t-b.t});
+
+/* ══════════ 建 DOM ══════════ */
+function esc(s){return s.replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
+var docB=document.getElementById('doc'),SEN=[],ENTS={};
+DOC.forEach(function(row,i){
+  var txt=row[0],mk=row[1],html='',at=0;
+  mk.forEach(function(m){
+    var p=txt.indexOf(m[1]);if(p<0)return;
+    html+=esc(txt.slice(at,p))+'<i class="ent" data-k="'+m[0]+'">'+esc(m[1])+'</i>';
+    at=p+m[1].length;
+  });
+  html+=esc(txt.slice(at));
+  var d=document.createElement('div');d.className='sen';
+  d.innerHTML='<span class="n">'+String(i+1).padStart(2,'0')+'</span><span>'+html+'</span>';
+  docB.appendChild(d);SEN.push(d);
+});
+docB.querySelectorAll('.ent').forEach(function(e){ENTS[e.getAttribute('data-k')]=e});
+/* 产物：按组渲染 */
+var artB=document.getElementById('art'),ROWS={},lastG=null,GRP={};
+G.forEach(function(f,i){
+  if(f[0]!==lastG){lastG=f[0];
+    var h=document.createElement('div');h.className='grp';
+    h.innerHTML='<b>'+f[0]+'</b> 类<span></span><i data-g="'+f[0]+'">0/0</i>';
+    artB.appendChild(h);GRP[f[0]]={el:h.querySelector('i'),n:0,done:0};
+  }
+  GRP[f[0]].n++;
+  var d=document.createElement('div');d.className='f'+(f[5]==='推断'?' g':'')+(f[5]==='未提及'?' na':'')+(f[5]==='冲突'?' cf':'');
+  var tag=f[5]?'<span class="tg">'+f[5]+'</span>':'';
+  d.innerHTML='<span class="k">'+String(i+1).padStart(2,'0')+' '+f[2]+'</span>'+
+    '<span class="v">'+esc(f[3])+tag+'</span>'+
+    '<span class="at"><span class="d"></span>'+(f[4]>=0?'S'+String(f[4]+1).padStart(2,'0'):'—')+'</span>';
+  artB.appendChild(d);ROWS[f[1]]={el:d,i:i};
+});
+/* 事件卡 */
+var evB=document.getElementById('ev'),CARDS=[];
+EV.forEach(function(e){
+  if(e.k!=='card'&&e.k!=='tool'&&e.k!=='sys')return;
+  var d=document.createElement('div');d.className='card k-'+(e.kind||'tool');
+  var kk=e.kind==='think'?'REASON':e.kind==='warn'?'WARN':e.kind==='bad'?'CONFLICT':
+         e.kind==='ok'?'PASS':e.kind==='done'?'DONE':e.k==='tool'?'TOOL':'SYS';
+  d.innerHTML='<div class="hd"><span class="kind">'+kk+'</span><span class="fn">'+e.fn+'</span>'+
+    (e.ms?'<span class="ms">'+e.ms+' ms</span>':'')+'</div>'+
+    (e.ar?'<div class="args">'+e.ar+'</div>':'')+'<div class="bd"></div>'+
+    (e.ms?'<div class="lat"><span>latency</span><span class="lb"><i></i></span><span>'+e.ms+'ms</span></div>':'');
+  evB.appendChild(d);
+  CARDS.push({e:e,el:d,bd:d.querySelector('.bd'),lat:d.querySelector('.lat .lb i'),
+              tw:e.kind==='think'||e.kind==='bad'?1.0:.62});
+});
+/* 数据流图 */
+var NS='http://www.w3.org/2000/svg',GG=document.getElementById('graph');
+var NODES=[{id:'n1',x:14,t:'技术要求',s:'PDF · 22 句',u:'句'},
+ {id:'n2',x:248,t:'句序索引',s:'split · 1,084 字',u:'句'},
+ {id:'n3',x:482,t:'实体抽取',s:'LLM · 锚点回指',u:'实体'},
+ {id:'n4',x:740,t:'规则校验',s:'单位·量纲·区间·一致性',u:'通过'},
+ {id:'n5',x:1000,t:'内部规格表',s:'40 栏 · 6 组',u:'栏'}];
+var EDGES=[{id:'e1',a:'n1',b:'n2'},{id:'e2',a:'n2',b:'n3'},{id:'e3',a:'n3',b:'n4'},
+ {id:'e4',a:'n4',b:'n5'},{id:'e6',a:'n4',b:'n3',back:1}];
+var NW=178,NH=52,P={},EE={};
+function el(n,a){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);return e}
+NODES.forEach(function(n){
+  var g=el('g',{});
+  g.appendChild(el('rect',{x:n.x,y:26,width:NW,height:NH,class:'nbox','data-n':n.id}));
+  [[n.x,26,1,1],[n.x+NW,26,-1,1],[n.x,26+NH,1,-1],[n.x+NW,26+NH,-1,-1]].forEach(function(c){
+    g.appendChild(el('path',{d:'M'+(c[0]+c[2]*9)+','+c[1]+' L'+c[0]+','+c[1]+' L'+c[0]+','+(c[1]+c[3]*9),class:'tick'}))});
+  var a=el('text',{x:n.x+12,y:46,class:'ntitle'});a.textContent=n.t;g.appendChild(a);
+  var b=el('text',{x:n.x+12,y:62,class:'nsub'});b.textContent=n.s;g.appendChild(b);
+  var c=el('text',{x:n.x+NW-12,y:47,class:'ncnt z','text-anchor':'end','data-c':n.id});c.textContent='0';g.appendChild(c);
+  var u=el('text',{x:n.x+NW-12,y:62,class:'ntagn','text-anchor':'end'});u.textContent=n.u;g.appendChild(u);
+  GG.appendChild(g);
+});
+EDGES.forEach(function(e){
+  var A=NODES.filter(function(n){return n.id===e.a})[0],B=NODES.filter(function(n){return n.id===e.b})[0];
+  var d;
+  if(e.back){var yy=104;d='M'+(A.x+NW*.5)+',78 L'+(A.x+NW*.5)+','+yy+' L'+(B.x+NW*.5)+','+yy+' L'+(B.x+NW*.5)+',78';}
+  else d='M'+(A.x+NW)+',52 L'+B.x+',52';
+  var p=el('path',{d:d,class:'edge'});GG.appendChild(p);P[e.id]=p;EE[e.id]=p;
+  if(e.back){var lb=el('text',{x:(A.x+NW*.5+B.x+NW*.5)/2,y:yy-5,class:'lbl','text-anchor':'middle'});
+    lb.textContent='RETRY · 校验不通过回退';GG.appendChild(lb);}
+  else GG.appendChild(el('path',{d:'M'+(B.x-7)+',48.5 L'+B.x+',52 L'+(B.x-7)+',55.5',class:'arr'}));
+});
+var PK=el('g',{});GG.appendChild(PK);
+var NE={};GG.querySelectorAll('.nbox').forEach(function(r){NE[r.getAttribute('data-n')]=r});
+var NC={};GG.querySelectorAll('[data-c]').forEach(function(t){NC[t.getAttribute('data-c')]=t});
+
+/* ══════════ 落表时刻：由句序推导，特殊项覆盖 ══════════ */
+var WT={};
+G.forEach(function(f,i){
+  if(f[4]>=0){var t=SENT_T0+f[4]*T_S+.62;WT[f[1]]=t}
+});
+WT.shrink=T_AFTER+2.6; WT.cyc=T_AFTER+5.7;
+['clean','drop','uv','qual'].forEach(function(k,ix){WT[k]=T_AFTER+5.2+ix*.07});
+/* 旁白 */
+var NARR=[
+ [0.0,'一份<b>技术要求</b>要变成一张<b>内部规格表</b>。现在靠人逐条抄，约 10 天。'],
+ [1.9,'第一步只是读进来、切句、建索引 —— 这步<b>没有智能</b>，也不需要。'],
+ [SENT_T0+1.05*T_S,'智能在这里：「不得掺用回收料」原文<b>没有这一栏</b>，是模型判断出它该独立成栏。'],
+ [SENT_T0+11*1.05,'一句话里三个量，<b>量纲不同就拆成三栏</b> —— 这是理解，不是复制粘贴。'],
+ [T_AFTER+.2,'每个值都要<b>回指原文锚点</b>；回指不上的，规则校验会拦下来。'],
+ [T_AFTER+1.1,'拦下来之后<b>不猜</b>：带着反馈回退重抽一次（看下面那条 RETRY 环）。'],
+ [T_AFTER+3.5,'两句要求<b>互相冲突</b>时模型<b>无权折中</b>，挂出两个原文交人工 —— 这是它的边界。'],
+ [T_AFTER+4.6,'原文没写的 4 栏，模型<b>明确输出「未提及」</b>。敢说不知道的模型才敢用。'],
+ [T_AFTER+6.1,'全程约 '+(T_END).toFixed(0)+' 秒。40 栏里<b>人只需处理 5 栏</b>。']
+];
+/* ══════════ 时钟驱动：状态 = f(t) ══════════ */
+var tl=document.getElementById('tl'),tlI=tl.querySelector('i'),clk=document.getElementById('clk'),
+ narr=document.getElementById('narr'),bPlay=document.getElementById('bPlay'),
+ bReset=document.getElementById('bReset'),bSpd=document.getElementById('bSpd'),
+ bLoop=document.getElementById('bLoop'),stEl=document.getElementById('st'),stv=document.getElementById('stv'),
+ kStep=document.getElementById('kStep'),kTok=document.getElementById('kTok'),
+ kCost=document.getElementById('kCost'),kBack=document.getElementById('kBack'),
+ aCnt=document.getElementById('aCnt'),evWrap=document.getElementById('evWrap'),
+ docWrap=document.getElementById('docWrap'),artWrap=artB.closest('.pbody'),
+ pg1=document.getElementById('pg1'),pg2=document.getElementById('pg2'),pg3=document.getElementById('pg3'),
+ t1=document.getElementById('t1'),t2=document.getElementById('t2'),t3=document.getElementById('t3'),t4=document.getElementById('t4');
+function truncTo(html,n){var out='',vis=0,i=0;
+  while(i<html.length&&vis<n){if(html[i]==='<'){var j=html.indexOf('>',i);out+=html.slice(i,j+1);i=j+1;continue}
+    out+=html[i];i++;vis++}return out}
+var T=FROZEN?parseFloat(Q.get('t')):0,playing=!FROZEN,raf=0,last=0,hold=0,
+    SPD=1,SPDS=[1,1.5,2,.5],spi=0,LOOP=true;
+function apply(t){
+  var step=0,tok=0;
+  CARDS.forEach(function(c){
+    var e=c.e;
+    if(t>=e.t){c.el.classList.add('on');step++;
+      var p=Math.min(1,(t-e.t)/c.tw);
+      c.bd.innerHTML=p<1?truncTo(e.bd,Math.floor(e.bd.replace(/<[^>]+>/g,'').length*p))+'<span class="caret"></span>':e.bd;
+      if(c.lat)c.lat.style.width=Math.min(1,p)*100+'%';
+    }else{c.el.classList.remove('on');c.bd.innerHTML='';if(c.lat)c.lat.style.width='0'}
+  });
+  tok=CARDS.reduce(function(a,c){return c.e.t<=t?a+(c.e.tok||0):a},0);
+  var done=t>=T_AFTER+6.9;
+  stEl.className='st '+(done?'done':(t>.25?'run':''));
+  stv.textContent=done?'DONE':(t>.25?'RUNNING':'IDLE');
+  kStep.textContent=String(step).padStart(2,'0');
+  kTok.textContent=tok.toLocaleString();
+  kCost.textContent='¥'+(tok/1000*0.012).toFixed(2);
+  /* 读到哪句 + 读取头相位 */
+  var readTo=-1;
+  EV.forEach(function(e){if(e.sent!==undefined&&e.t<=t)readTo=Math.max(readTo,e.sent)});
+  var headT=0;
+  if(readTo>=0){headT=Math.min(1,(t-(SENT_T0+readTo*T_S))/T_S)}
+  SEN.forEach(function(s,i){
+    s.classList.toggle('read',i<=readTo);
+    var cur=(i===readTo&&!done&&t>=SENT_T0-.6);
+    s.classList.toggle('cur',cur);
+    if(cur)s.style.setProperty('--p',(6+headT*88).toFixed(1)+'%');
+  });
+  /* 实体 */
+  Object.keys(ENTS).forEach(function(k){
+    var en=ENTS[k],at=WT[k];
+    en.classList.toggle('hit',at!==undefined&&t>at);
+    en.classList.toggle('hot',at!==undefined&&t>at-.55&&t<=at);
+    en.classList.toggle('guess',G[FK[k].i][5]==='推断'&&t>SENT_T0+G[FK[k].i][4]*T_S&&t<=at);
+    en.classList.toggle('cf',k==='temp'||k==='cyc');
+  });
+  /* 落表 */
+  var cnt=0,w1=0,w2=0,w3=0,w4=0;
+  Object.keys(GRP).forEach(function(g){GRP[g].done=0});
+  G.forEach(function(f,i){
+    var r=ROWS[f[1]].el,at=WT[f[1]];
+    if(at!==undefined&&t>at){r.classList.add('w');cnt++;GRP[f[0]].done++;
+      if(f[5]==='推断')w2++;else if(f[5]==='未提及')w3++;else if(f[5]==='冲突')w4++;else w1++;
+      r.classList.toggle('flash',t-at<0.5);
+    }else{r.classList.remove('w','flash')}
+  });
+  Object.keys(GRP).forEach(function(g){
+    GRP[g].el.textContent=GRP[g].done+'/'+GRP[g].n});
+  aCnt.textContent=cnt+' / '+G.length;
+  t1.textContent=w1;t2.textContent=w2;t3.textContent=w3;t4.textContent=w4;
+  kBack.textContent=(cnt-w3-w4)+'/'+(G.length-4);
+  pg1.style.width=Math.min(100,(readTo+1)/DOC.length*100)+'%';
+  pg2.style.width=(step/CARDS.length*100)+'%';
+  pg3.style.width=(cnt/G.length*100)+'%';
+  /* 数据包 + 彗尾 */
+  PK.innerHTML='';var live={};
+  EV.forEach(function(e){
+    var ids=[],t0=e.t,d=e.d||.7;
+    if(e.k==='flow')ids=[e.e];
+    else if(e.k==='write')ids=['e4','e5'];
+    else return;
+    ids.forEach(function(id){
+      var p=P[id];if(!p)return;
+      var pr=(t-t0)/d;
+      if(pr<=0||pr>=1.35)return;
+      p.classList.add('live');live[id]=1;
+      var L=p.getTotalLength();
+      for(var i=0;i<(e.n||3);i++){
+        var u=pr-i*.13;if(u<0||u>1)continue;
+        var pt=p.getPointAtLength(u*L);
+        var isW=(id==='e4'||id==='e5');
+        PK.appendChild(el('circle',{cx:pt.x,cy:pt.y,r:isW?3.4:2.8,
+          class:'pkt'+(isW?' w':'')}));
+        PK.appendChild(el('circle',{cx:pt.x,cy:pt.y,r:8,class:'halo'+(isW?' w':'')}));
+        for(var q=1;q<=3;q++){
+          var tp=p.getPointAtLength(Math.max(0,u-q*.05)*L);
+          PK.appendChild(el('circle',{cx:tp.x,cy:tp.y,r:2.2-q*.55,
+            class:'pkt'+(isW?' w':''),'opacity':(.42-q*.11).toFixed(2)}));
+        }
+      }
+    });
+  });
+  Object.keys(EE).forEach(function(id){if(!live[id])EE[id].classList.remove('live')});
+  /* 节点计数 */
+  var n1=Math.min(22,Math.floor((t-1.9)/.06));
+  var n2=t>3.15?22:0;
+  var n3=Object.keys(WT).filter(function(k){return t>SENT_T0+G[FK[k].i][4]*T_S}).length;
+  /* 校验数 = 已落表数：每栏落表前都过一遍规则，因果不能反（批量 verify 做的是组内一致性复核）*/
+  var n4=cnt,n5=cnt;
+  [[ 'n1',Math.max(0,n1),''],[ 'n2',n2,''],[ 'n3',n3,''],[ 'n4',Math.min(40,n4),''],[ 'n5',n5,'']].forEach(function(x){
+    var e2=NC[x[0]];e2.textContent=x[1];
+    e2.setAttribute('class','ncnt '+(x[1]>0?(x[0]==='n5'?'':'c'):'z'));
+  });
+  var act={n1:t>1.9,n2:t>2.9,n3:t>SENT_T0-.5,n4:t>T_AFTER-.2||t>SENT_T0,n5:t>SENT_T0};
+  Object.keys(NE).forEach(function(id){
+    NE[id].classList.toggle('act',!!act[id]&&!done);
+    NE[id].classList.toggle('out',id==='n5'&&cnt>0);
+  });
+  var n=NARR[0][1];NARR.forEach(function(x){if(t>=x[0])n=x[1]});
+  if(narr._n!==n){narr.innerHTML=n;narr._n=n}
+  tlI.style.width=(t/T_END*100)+'%';
+  clk.textContent=t.toFixed(1)+' / '+T_END.toFixed(1)+' s';
+}
+/* ══════════ 播放 / 循环 / 拖拽 ══════════ */
+function follow(){
+  var c=CARDS.filter(function(x){return x.el.classList.contains('on')}).pop();
+  if(c)evWrap.scrollTop=c.el.offsetTop-evWrap.clientHeight+c.el.offsetHeight+16;
+  var r=Object.keys(ROWS).map(function(k){return ROWS[k]}).filter(function(o){return o.el.classList.contains('w')}).pop();
+  if(r)artWrap.scrollTop=Math.max(0,r.el.offsetTop-artWrap.clientHeight+r.el.offsetHeight+20);
+  var s=SEN.filter(function(x){return x.classList.contains('cur')})[0];
+  if(s)docWrap.scrollTop=Math.max(0,s.offsetTop-docWrap.clientHeight/2+s.offsetHeight/2);
+}
+function tick(now){
+  if(!playing){hold=0;return}
+  var dt=(now-last)/1000;last=now;
+  if(hold){ if(now<hold){raf=requestAnimationFrame(tick);return} hold=0 }
+  T=Math.min(T_END,T+dt*SPD);apply(T);follow();
+  if(T>=T_END){
+    if(LOOP){hold=performance.now()+2200;bPlay.textContent='▶ 循环中'}
+    else{playing=false;bPlay.textContent='▶ 重播'}
+  }else bPlay.textContent='❙❙ 暂停';
+  raf=requestAnimationFrame(tick);
+}
+function play(){playing=true;last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(tick)}
+function pause(){playing=false;hold=0;bPlay.textContent='▶ 运行';cancelAnimationFrame(raf)}
+bPlay.onclick=function(){
+  if(playing){pause();return}
+  if(T>=T_END)T=0;
+  play()};
+bReset.onclick=function(){T=0;hold=0;apply(0);if(!playing)play()};
+bLoop.onclick=function(){LOOP=!LOOP;bLoop.textContent=LOOP?'循环 开':'循环 关';
+  bLoop.classList.toggle('on',LOOP)};
+bSpd.onclick=function(){spi=(spi+1)%SPDS.length;SPD=SPDS[spi];bSpd.textContent=SPD.toFixed(1)+'×'};
+function seek(e){var r=tl.getBoundingClientRect();
+  var x=(e.clientX!==undefined?e.clientX:e.touches[0].clientX)-r.left;
+  T=Math.max(0,Math.min(T_END,x/r.width*T_END));playing=false;hold=0;
+  bPlay.textContent='▶ 运行';cancelAnimationFrame(raf);apply(T);follow()}
+tl.addEventListener('pointerdown',function(e){tl.setPointerCapture(e.pointerId);seek(e);
+  var mv=function(n){seek(n)},up=function(){tl.removeEventListener('pointermove',mv);
+  tl.removeEventListener('pointerup',up)};
+  tl.addEventListener('pointermove',mv);tl.addEventListener('pointerup',up)});
+[1.9,SENT_T0+1.05,SENT_T0+11*1.05,T_AFTER+.2,T_AFTER+1.1,T_AFTER+3.5,T_AFTER+4.6,T_AFTER+6.1]
+ .forEach(function(s){var m=document.createElement('span');m.className='mk beat';
+  m.style.left=(s/T_END*100)+'%';tl.appendChild(m)});
+apply(T);follow();          /* 定格模式也要跟随，否则三栏停在顶部、看着像没跑完 */
+if(playing)play();
+})();
+</script>
+</body>
+</html>
