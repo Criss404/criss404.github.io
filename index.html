@@ -262,6 +262,9 @@ path.wire.on{stroke:var(--ac-hi);opacity:1;stroke-width:2}
   /* 分屏：窄屏画不了连线，就把出处直接写进格子，"哪句到哪个格"的映射不丢 */
   .map{grid-template-columns:1fr;gap:30px 0}
   .map svg{display:none}
+  /* 桌面靠 flex:1 1 0 把左列撑到与右列等高；窄屏两列上下堆叠、容器高度变 auto，
+     同样的写法会让行高塌成 0、文字互相压住。这里必须还原成按内容撑开。 */
+  .src{flex:0 0 auto}
   .dst::before{content:"第 " attr(data-line) " 条";order:-1;flex:0 0 auto;
     font-family:var(--mono);font-size:10px;color:var(--tx-3);letter-spacing:.04em}
   .dst[data-line="0"]::before{content:"无对应条款"}
